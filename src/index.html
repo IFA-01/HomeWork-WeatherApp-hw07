@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Погода</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="weather-app" id="weather-app">
+      <h1><i class="fas fa-cloud-sun"></i> Погода</h1>
+
+      <div class="input-group">
+        <input type="text" id="cityInput" placeholder="Введите город" />
+      </div>
+
+      <div class="buttons">
+        <button class="city-btn" id="cityBtn">
+          <i class="fas fa-city"></i> По городу
+        </button>
+        <button class="geo-btn" id="geoBtn">
+          <i class="fas fa-location-arrow"></i> По геолокации
+        </button>
+      </div>
+
+      <div class="loading" id="loading">
+        <i class="fas fa-spinner fa-spin"></i> Загрузка...
+      </div>
+
+      <div class="error" id="error">
+        Город не найден. Проверьте правильность написания.
+      </div>
+
+      <div class="weather-info" id="weatherInfo">
+        <div class="location" id="location">Москва</div>
+        <div class="temp" id="temperature">15°C</div>
+        <div class="description" id="description">Облачно</div>
+
+        <div class="details">
+          <div class="detail">
+            <i class="fas fa-wind"></i>
+            <div id="wind">5 м/с</div>
+          </div>
+          <div class="detail">
+            <i class="fas fa-tint"></i>
+            <div id="humidity">65%</div>
+          </div>
+          <div class="detail">
+            <i class="fas fa-temperature-high"></i>
+            <div id="feelsLike">14°C</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
