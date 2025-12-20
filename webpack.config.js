@@ -2,27 +2,38 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-module.exports = {
-  entry: './src/script.js',
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === 'production';
+  const jsFilename = isProduction
+    ? 'bundle.[contenthash].js'
+    : 'bundle.js';
+  const cssFilename = isProduction
+    ? 'style.[contenthash].css'
+    : 'style.css';
 
-  mode: 'production',
+  return {
+    entry: './src/script.js',
 
-  output: {
-    filename: 'bundle.[contenthash].js',
-    path: path.resolve(__dirname, 'dist'),
-    clean: true,
-    publicPath: '/HomeWork-WeatherApp-hw07/',
-  },
+    mode: argv.mode || 'production',
 
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: './src/index.html',
-      minify: true,
-    }),
-    new MiniCssExtractPlugin({
-      filename: 'style.[contenthash].css',
-    }),
-  ],
+    output: {
+      filename: jsFilename,
+      path: path.resolve(__dirname, 'dist'),
+      clean: true,
+      publicPath: './',
+    },
+
+    plugins: [
+      new HtmlWebpackPlugin({
+        template: './src/index.html',
+        minify: isProduction,
+        inject: isProduction, // Инжектируем только в production
+        mode: argv.mode || 'production', // Передаем режим в шаблон
+      }),
+      new MiniCssExtractPlugin({
+        filename: cssFilename,
+      }),
+    ],
   module: {
     rules: [
       {
@@ -46,9 +57,10 @@ module.exports = {
     ],
   },
 
-  devServer: {
-    static: './dist',
-    port: 3000,
-    open: true,
-  },
+    devServer: {
+      static: './dist',
+      port: 3000,
+      open: true,
+    },
+  };
 };

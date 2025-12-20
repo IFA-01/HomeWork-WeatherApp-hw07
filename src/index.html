@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Погода</title>
-
+    <% if (htmlWebpackPlugin.options.mode === 'development') { %>
     <link rel="stylesheet" href="style.css" />
+    <% } %>
   </head>
   <body>
     <div class="weather-app" id="weather-app">
@@ -53,7 +54,8 @@
         </div>
       </div>
     </div>
-
-    <script src="script.js"></script>
+    <% if (htmlWebpackPlugin.options.mode === 'development') { %>
+    <script src="bundle.js"></script>
+    <% } %>
   </body>
 </html>
