@@ -1,4 +1,5 @@
 // Получаем элементы DOM только если они существуют (для поддержки тестирования)
+require('./style.css');
 const cityInput =
   typeof document !== 'undefined' ? document.getElementById('cityInput') : null;
 const cityBtn =

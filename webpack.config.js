@@ -11,7 +11,7 @@ module.exports = {
     filename: 'bundle.[contenthash].js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
-    publicPath: '/HomeWork-CICD-GHPages/',
+    publicPath: '/HomeWork-WeatherApp-hw07/',
   },
 
   plugins: [
