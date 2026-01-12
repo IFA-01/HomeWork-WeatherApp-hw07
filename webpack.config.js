@@ -12,7 +12,7 @@ module.exports = (env, argv) => {
     : 'style.css';
 
   return {
-    entry: './src/script.js',
+    entry: './src/index.js',
 
     mode: argv.mode || 'production',
 
