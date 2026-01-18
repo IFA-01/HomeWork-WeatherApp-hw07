@@ -39,9 +39,12 @@ describe('Тесты приложения погоды', () => {
 
     jest.clearAllMocks();
 
-    const scriptModule = require('./model.js');
-    fetchWeather = scriptModule.fetchWeather;
-    fetchGeo = scriptModule.fetchGeo;
+    const modelModule = require('./model.js');
+    fetchWeather = modelModule.fetchWeather;
+    fetchGeo = modelModule.fetchGeo;
+
+    const { init } = require('./controller.js');
+    init();
   });
 
   afterEach(() => {
@@ -71,7 +74,6 @@ describe('Тесты приложения погоды', () => {
       expect(result).toHaveProperty('main');
       expect(result.main).toHaveProperty('temp', 15);
       expect(result.main).toHaveProperty('humidity', 65);
-
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('Moscow')
       );
@@ -106,9 +108,9 @@ describe('Тесты приложения погоды', () => {
         },
       };
 
-      navigator.geolocation.getCurrentPosition.mockImplementation((success) => {
-        success(mockPosition);
-      });
+      navigator.geolocation.getCurrentPosition.mockImplementation((success) =>
+        success(mockPosition)
+      );
 
       const mockCityData = [{ name: 'Moscow' }];
       global.fetch.mockResolvedValueOnce({
@@ -118,7 +120,6 @@ describe('Тесты приложения погоды', () => {
       const city = await fetchGeo();
 
       expect(city).toBe('Moscow');
-
       expect(window.localStorage.setItem).toHaveBeenCalledWith(
         'geoPermission',
         'granted'
@@ -168,10 +169,11 @@ describe('Тесты приложения погоды', () => {
         writable: true,
       });
 
-      require('./index.js');
+      const { init } = require('./controller.js');
+      init();
     });
 
-    test('3.1 Нажатие кнопки с пустым полем ввода', async () => {
+    test('3.1 Нажатие кнопки с пустым полем ввода', () => {
       const cityInput = document.getElementById('cityInput');
       const cityBtn = document.getElementById('cityBtn');
 
@@ -202,7 +204,7 @@ describe('Тесты приложения погоды', () => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       expect(global.fetch).toHaveBeenCalled();
-    });
+    }, 10000);
 
     test('3.3 Запрос погоды с ошибкой', async () => {
       const cityInput = document.getElementById('cityInput');
@@ -216,7 +218,7 @@ describe('Тесты приложения погоды', () => {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       expect(global.alert).toHaveBeenCalled();
-    });
+    }, 10000);
   });
 
   describe('4. Тест UI: кнопка "По геолокации"', () => {
@@ -246,7 +248,8 @@ describe('Тесты приложения погоды', () => {
         writable: true,
       });
 
-      require('./index.js');
+      const { init } = require('./controller.js');
+      init();
     });
 
     test('4.1 Успешный сценарий получения погоды по геолокации', async () => {
@@ -257,9 +260,9 @@ describe('Тесты приложения погоды', () => {
         },
       };
 
-      navigator.geolocation.getCurrentPosition.mockImplementation((success) => {
-        success(mockPosition);
-      });
+      navigator.geolocation.getCurrentPosition.mockImplementation((success) =>
+        success(mockPosition)
+      );
 
       const mockCityData = [{ name: 'Moscow' }];
       const mockWeatherData = {
@@ -280,10 +283,11 @@ describe('Тесты приложения погоды', () => {
       const geoBtn = document.getElementById('geoBtn');
       geoBtn.click();
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
-    });
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    }, 10000);
   });
 
   describe('5. Тест интеграции', () => {
@@ -295,17 +299,19 @@ describe('Тесты приложения погоды', () => {
         },
       };
 
-      navigator.geolocation.getCurrentPosition.mockImplementation((success) => {
-        success(mockPosition);
-      });
+      navigator.geolocation.getCurrentPosition.mockImplementation((success) =>
+        success(mockPosition)
+      );
 
       const mockCityData = [{ name: 'Moscow' }];
       global.fetch.mockResolvedValueOnce({
         json: jest.fn().mockResolvedValue(mockCityData),
       });
 
-      await fetchGeo();
+      const { fetchGeo } = require('./model.js');
+      const city = await fetchGeo();
 
+      expect(city).toBe('Moscow');
       expect(window.localStorage.setItem).toHaveBeenCalledWith(
         'geoPermission',
         'granted'
