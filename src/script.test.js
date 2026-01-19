@@ -318,4 +318,19 @@ describe('Тесты приложения погоды', () => {
       );
     });
   });
+  describe('6. Тест точки входа: index.js', () => {
+    beforeEach(() => {
+      jest.resetModules();
+      document.body.innerHTML = '';
+      Object.defineProperty(document, 'readyState', {
+        value: 'complete',
+        writable: true,
+      });
+    });
+
+    test('6.1 Должен экспортировать init', () => {
+      const index = require('./index.js');
+      expect(typeof index.init).toBe('function');
+    });
+  });
 });
