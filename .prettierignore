@@ -1,0 +1,6 @@
+node_modules
+dist
+coverage
+.env
+*.log
+webpack.config.js
