@@ -1,4 +1,5 @@
-module.exports = {
+export default {
+  plugins: ["babel-plugin-transform-import-meta" ],
   presets: [
     [
       '@babel/preset-env',
@@ -6,9 +7,10 @@ module.exports = {
         targets: {
           node: 'current',
         },
-        modules: false,
+        modules: 'commonjs',
         useBuiltIns: 'usage',
         corejs: { version: 3, proposals: true },
+        
       },
     ],
   ],

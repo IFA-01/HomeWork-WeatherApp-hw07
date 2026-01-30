@@ -15,5 +15,8 @@ module.exports = {
   transform: {
     '^.+\\.js$': 'babel-jest',
   },
-  transformIgnorePatterns: ['node_modules/(?!(jest-)?@?babel)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(jest-)?@?babel|jsdom|whatwg-url|html-encoding-sniffer|@exodus)',
+  ],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 };
