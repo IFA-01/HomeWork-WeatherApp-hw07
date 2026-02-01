@@ -2,7 +2,7 @@ name: CI & Deploy to GitHub Pages
 
 on:
   push:
-    branches: [dev, main, master]
+    branches: [dev, main, dev-refactored-EventBus, dev-refactored-MVC]
 
 jobs:
   ci:
