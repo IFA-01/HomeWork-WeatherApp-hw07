@@ -1,4 +1,3 @@
-// Настройка TextEncoder и TextDecoder для Jest
 import { TextEncoder, TextDecoder } from 'util';
 
 global.TextEncoder = TextEncoder;

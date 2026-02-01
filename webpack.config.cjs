@@ -27,8 +27,8 @@ module.exports = (env, argv) => {
       new HtmlWebpackPlugin({
         template: './src/index.html',
         minify: isProduction,
-        inject: isProduction, // Инжектируем только в production
-        mode: argv.mode || 'production', // Передаем режим в шаблон
+        inject: true, 
+        mode: argv.mode || 'production', 
       }),
       new MiniCssExtractPlugin({
         filename: cssFilename,

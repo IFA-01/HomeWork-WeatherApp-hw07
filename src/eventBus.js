@@ -23,5 +23,4 @@ class EventBus {
   }
 }
 
-// Экспортируем один экземпляр
 export default new EventBus();

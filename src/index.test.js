@@ -26,7 +26,6 @@ describe('Тесты index.js', () => {
 
     const addEventListenerSpy = jest.spyOn(document, 'addEventListener');
 
-    // Имитируем логику index.js
     if (typeof document !== 'undefined' && document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         controller.init();
@@ -54,7 +53,6 @@ describe('Тесты index.js', () => {
       configurable: true,
     });
 
-    // Имитируем логику index.js
     if (typeof document !== 'undefined' && document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         controller.init();
@@ -70,7 +68,6 @@ describe('Тесты index.js', () => {
     const originalDocument = global.document;
     delete global.document;
 
-    // Имитируем логику index.js
     if (typeof document !== 'undefined' && document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         controller.init();
@@ -79,9 +76,7 @@ describe('Тесты index.js', () => {
       controller.init();
     }
 
-    expect(() => {
-      // Код не должен упасть
-    }).not.toThrow();
+    expect(() => {}).not.toThrow();
 
     global.document = originalDocument;
   });

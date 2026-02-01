@@ -23,7 +23,6 @@ function showLoading(isLoading) {
   }
 }
 
-// Подписки
 EventBus.on('weather:loaded', ({ city, weather }) => {
   renderWeather(city, weather);
 });
@@ -36,5 +35,4 @@ EventBus.on('loading', (isLoading) => {
   showLoading(isLoading);
 });
 
-// Экспорт функций (на случай, если понадобятся в тестах)
 export { renderWeather, showError, showLoading };
