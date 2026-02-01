@@ -1,5 +1,5 @@
 export default {
-  plugins: ["babel-plugin-transform-import-meta" ],
+  plugins: ['babel-plugin-transform-import-meta'],
   presets: [
     [
       '@babel/preset-env',
@@ -10,7 +10,6 @@ export default {
         modules: 'commonjs',
         useBuiltIns: 'usage',
         corejs: { version: 3, proposals: true },
-        
       },
     ],
   ],

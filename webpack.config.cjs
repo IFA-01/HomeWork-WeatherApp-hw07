@@ -4,12 +4,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
-  const jsFilename = isProduction
-    ? 'bundle.[contenthash].js'
-    : 'bundle.js';
-  const cssFilename = isProduction
-    ? 'style.[contenthash].css'
-    : 'style.css';
+  const jsFilename = isProduction ? 'bundle.[contenthash].js' : 'bundle.js';
+  const cssFilename = isProduction ? 'style.[contenthash].css' : 'style.css';
 
   return {
     entry: './src/index.js',
@@ -27,35 +23,35 @@ module.exports = (env, argv) => {
       new HtmlWebpackPlugin({
         template: './src/index.html',
         minify: isProduction,
-        inject: true, 
-        mode: argv.mode || 'production', 
+        inject: true,
+        mode: argv.mode || 'production',
       }),
       new MiniCssExtractPlugin({
         filename: cssFilename,
       }),
     ],
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env'],
+    module: {
+      rules: [
+        {
+          test: /\.js$/,
+          exclude: /node_modules/,
+          use: {
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/preset-env'],
+            },
           },
         },
-      },
-      {
-        test: /\.css$/i,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
-      },
-      {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i,
-        type: 'asset/resource',
-      },
-    ],
-  },
+        {
+          test: /\.css$/i,
+          use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        },
+        {
+          test: /\.(png|svg|jpg|jpeg|gif)$/i,
+          type: 'asset/resource',
+        },
+      ],
+    },
 
     devServer: {
       static: './dist',
