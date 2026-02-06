@@ -24,11 +24,14 @@ module.exports = (env, argv) => {
         template: './src/index.html',
         minify: isProduction,
         inject: true,
-        mode: argv.mode || 'production',
       }),
-      new MiniCssExtractPlugin({
-        filename: cssFilename,
-      }),
+      ...(isProduction
+        ? [
+            new MiniCssExtractPlugin({
+              filename: cssFilename,
+            }),
+          ]
+        : []),
     ],
     module: {
       rules: [
@@ -44,7 +47,9 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.css$/i,
-          use: [MiniCssExtractPlugin.loader, 'css-loader'],
+          use: isProduction
+            ? [MiniCssExtractPlugin.loader, 'css-loader']
+            : ['style-loader', 'css-loader'],
         },
         {
           test: /\.(png|svg|jpg|jpeg|gif)$/i,
