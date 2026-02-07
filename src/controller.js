@@ -1,7 +1,7 @@
-const { fetchWeather, fetchGeo } = require('./model.js');
-const { renderWeather, showError, showLoading } = require('./view.js');
+import { fetchWeather, fetchGeo } from './model.js';
+import EventBus from './eventBus.js';
 
-function init() {
+export function init() {
   const cityInput = document.getElementById('cityInput');
   const cityBtn = document.getElementById('cityBtn');
   const geoBtn = document.getElementById('geoBtn');
@@ -10,36 +10,34 @@ function init() {
     cityBtn.addEventListener('click', async () => {
       const city = cityInput.value.trim();
       if (!city) {
-        showError('enter a city name');
+        EventBus.emit('error', 'Введите название города');
         return;
       }
 
-      showLoading(true);
+      EventBus.emit('loading', true);
       try {
         const weather = await fetchWeather(city);
-        renderWeather(city, weather);
+        EventBus.emit('weather:loaded', { city, weather });
       } catch (error) {
-        showError(`Error: ${error.message}`);
+        EventBus.emit('error', error);
       } finally {
-        showLoading(false);
+        EventBus.emit('loading', false);
       }
     });
   }
 
   if (geoBtn) {
     geoBtn.addEventListener('click', async () => {
-      showLoading(true);
+      EventBus.emit('loading', true);
       try {
         const city = await fetchGeo();
         const weather = await fetchWeather(city);
-        renderWeather(city, weather);
+        EventBus.emit('weather:loaded', { city, weather });
       } catch (error) {
-        showError(error.message);
+        EventBus.emit('error', error);
       } finally {
-        showLoading(false);
+        EventBus.emit('loading', false);
       }
     });
   }
 }
-
-module.exports = { init };

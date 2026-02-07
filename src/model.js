@@ -1,4 +1,4 @@
-async function fetchWeather(city) {
+export async function fetchWeather(city) {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   const APP_ID = '97d93f1704dcb8e35dd2045c8e75710d';
   let response = await fetch(
@@ -8,7 +8,7 @@ async function fetchWeather(city) {
   return weather;
 }
 
-async function fetchGeo() {
+export async function fetchGeo() {
   if (!navigator.geolocation) {
     throw new Error('couldnt get geolocation');
   }
@@ -29,7 +29,7 @@ async function fetchGeo() {
             localStorage.setItem('geoPermission', 'granted');
             resolve(city);
           } else {
-            reject(new Error('City no found for this location'));
+            reject(new Error('City not found for this location'));
           }
         } catch (error) {
           reject(new Error('Failed to get a City name', error));
@@ -55,5 +55,3 @@ async function fetchGeo() {
     );
   });
 }
-
-module.exports = { fetchWeather, fetchGeo };

@@ -1,3 +1,5 @@
+import EventBus from './eventBus.js';
+
 function renderWeather(city, weather) {
   const weatherContentDOM = document.getElementById('weather-app');
   const divForWeather = document.createElement('div');
@@ -21,4 +23,16 @@ function showLoading(isLoading) {
   }
 }
 
-module.exports = { renderWeather, showError, showLoading };
+EventBus.on('weather:loaded', ({ city, weather }) => {
+  renderWeather(city, weather);
+});
+
+EventBus.on('error', (error) => {
+  showError(error.message || error);
+});
+
+EventBus.on('loading', (isLoading) => {
+  showLoading(isLoading);
+});
+
+export { renderWeather, showError, showLoading };
