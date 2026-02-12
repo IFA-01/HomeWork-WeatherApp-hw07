@@ -6,10 +6,11 @@ module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
   const jsFilename = isProduction ? 'bundle.[contenthash].js' : 'bundle.js';
   const cssFilename = isProduction ? 'style.[contenthash].css' : 'style.css';
-  
-  const publicPath = (env && env.GITHUB_PAGES === 'true') || process.env.GITHUB_PAGES === 'true'
-    ? '/HomeWork-WeatherApp-hw07/' 
-    : './';
+
+  const publicPath =
+    (env && env.GITHUB_PAGES === 'true') || process.env.GITHUB_PAGES === 'true'
+      ? '/HomeWork-WeatherApp-hw07/'
+      : './';
 
   return {
     entry: './src/index.js',
