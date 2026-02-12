@@ -2,7 +2,7 @@
   "name": "homework-7-weather-app",
   "version": "1.0.0",
   "description": "",
-  "homepage": "hhttps://ifa-01.github.io/HomeWork-WeatherApp-hw07/",
+  "homepage": "https://ifa-01.github.io/HomeWork-WeatherApp-hw07/",
   "type": "module",
   "main": "script.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
-    "predeploy": "npm run build",
+    "build:gh-pages": "webpack --mode production --env GITHUB_PAGES=true",
+    "predeploy": "npm run build:gh-pages",
     "deploy": "gh-pages -d dist",
     "test": "jest",
     "test:coverage": "jest --coverage",

@@ -6,6 +6,10 @@ module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
   const jsFilename = isProduction ? 'bundle.[contenthash].js' : 'bundle.js';
   const cssFilename = isProduction ? 'style.[contenthash].css' : 'style.css';
+  
+  const publicPath = (env && env.GITHUB_PAGES === 'true') || process.env.GITHUB_PAGES === 'true'
+    ? '/HomeWork-WeatherApp-hw07/' 
+    : './';
 
   return {
     entry: './src/index.js',
@@ -16,7 +20,7 @@ module.exports = (env, argv) => {
       filename: jsFilename,
       path: path.resolve(__dirname, 'dist'),
       clean: true,
-      publicPath: './',
+      publicPath: publicPath,
     },
 
     plugins: [
@@ -62,6 +66,7 @@ module.exports = (env, argv) => {
       static: './dist',
       port: 3000,
       open: true,
+      historyApiFallback: true,
     },
   };
 };
