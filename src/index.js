@@ -1,14 +1,11 @@
-require('./style.css');
-const { init } = require('./controller.js');
+import './style.css';
+import { init } from './controller.js';
+import './view.js';
 
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { init };
-}
-
-if (typeof document !== 'undefined' && document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
     init();
-  });
-} else if (typeof document !== 'undefined') {
-  init();
+  }
 }
