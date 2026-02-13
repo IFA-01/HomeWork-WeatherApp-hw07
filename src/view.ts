@@ -1,17 +1,18 @@
 import EventBus from './eventBus.js';
+import { WeatherData } from './model.js';
 
-function getRouterContent() {
+function getRouterContent(): HTMLElement | null {
   return document.getElementById('router-content');
 }
 
-function clearContent() {
+function clearContent(): void {
   const routerContent = getRouterContent();
   if (routerContent) {
     routerContent.innerHTML = '';
   }
 }
 
-export function renderHome() {
+export function renderHome(): void {
   clearContent();
 
   const homeHTML = `
@@ -50,7 +51,7 @@ export function renderHome() {
   }
 }
 
-export function renderCityWeather(city, weather) {
+export function renderCityWeather(city: string, weather: WeatherData): void {
   clearContent();
 
   const weatherHTML = `
@@ -86,7 +87,9 @@ export function renderCityWeather(city, weather) {
   if (routerContent) {
     routerContent.innerHTML = weatherHTML;
 
-    const backBtn = document.getElementById('backBtn');
+    const backBtn = document.getElementById(
+      'backBtn'
+    ) as HTMLButtonElement | null;
     if (backBtn) {
       backBtn.addEventListener('click', () => {
         window.history.back();
@@ -95,7 +98,7 @@ export function renderCityWeather(city, weather) {
   }
 }
 
-export function renderAbout() {
+export function renderAbout(): void {
   clearContent();
 
   const aboutHTML = `
@@ -124,7 +127,9 @@ export function renderAbout() {
   if (routerContent) {
     routerContent.innerHTML = aboutHTML;
 
-    const backBtn = document.getElementById('backBtn');
+    const backBtn = document.getElementById(
+      'backBtn'
+    ) as HTMLButtonElement | null;
     if (backBtn) {
       backBtn.addEventListener('click', () => {
         window.history.back();
@@ -133,27 +138,42 @@ export function renderAbout() {
   }
 }
 
-export function showError(message) {
+export function showError(
+  message: string | Error | { message?: string }
+): void {
   const errorEl = document.getElementById('error');
+  let errorMessage: string;
+  if (message instanceof Error) {
+    errorMessage = message.message;
+  } else if (
+    typeof message === 'object' &&
+    message !== null &&
+    'message' in message
+  ) {
+    errorMessage = message.message || String(message);
+  } else {
+    errorMessage = String(message);
+  }
+
   if (errorEl) {
-    errorEl.textContent = message;
+    errorEl.textContent = errorMessage;
     errorEl.style.display = 'block';
     setTimeout(() => {
       errorEl.style.display = 'none';
     }, 5000);
   } else {
-    alert(message);
+    alert(errorMessage);
   }
 }
 
-export function showLoading(isLoading) {
+export function showLoading(isLoading: boolean): void {
   const loadingEl = document.getElementById('loading');
   if (loadingEl) {
     loadingEl.style.display = isLoading ? 'block' : 'none';
   }
 }
 
-export function renderHistory(history) {
+export function renderHistory(history: string[] | null): void {
   const historyList = document.getElementById('historyList');
   if (!historyList) return;
 
@@ -175,8 +195,10 @@ export function renderHistory(history) {
     .join('');
 }
 
-export function addToHistory(city) {
-  let history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
+export function addToHistory(city: string): void {
+  let history: string[] = JSON.parse(
+    localStorage.getItem('weatherHistory') || '[]'
+  );
 
   history = history.filter((item) => item !== city);
   history.unshift(city);
@@ -186,18 +208,23 @@ export function addToHistory(city) {
   renderHistory(history);
 }
 
-export function getHistory() {
+export function getHistory(): string[] {
   return JSON.parse(localStorage.getItem('weatherHistory') || '[]');
 }
 
-EventBus.on('weather:loaded', ({ city }) => {
+interface WeatherLoadedEvent {
+  city: string;
+  weather: WeatherData;
+}
+
+EventBus.on('weather:loaded', ({ city }: WeatherLoadedEvent) => {
   addToHistory(city);
 });
 
-EventBus.on('error', (error) => {
-  showError(error.message || error);
+EventBus.on('error', (error: string | Error | { message?: string }) => {
+  showError(error);
 });
 
-EventBus.on('loading', (isLoading) => {
+EventBus.on('loading', (isLoading: boolean) => {
   showLoading(isLoading);
 });

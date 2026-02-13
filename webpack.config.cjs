@@ -13,7 +13,7 @@ module.exports = (env, argv) => {
       : './';
 
   return {
-    entry: './src/index.js',
+    entry: './src/index.ts',
 
     mode: argv.mode || 'production',
 
@@ -38,8 +38,25 @@ module.exports = (env, argv) => {
           ]
         : []),
     ],
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      extensionAlias: {
+        '.js': ['.ts', '.js'],
+        '.jsx': ['.tsx', '.jsx'],
+      },
+    },
     module: {
       rules: [
+        {
+          test: /\.tsx?$/,
+          exclude: /node_modules/,
+          use: {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: false,
+            },
+          },
+        },
         {
           test: /\.js$/,
           exclude: /node_modules/,

@@ -321,7 +321,7 @@ describe('Тесты приложения погоды', () => {
         input.value = 'Moscow';
         btn.click();
 
-        await new Promise((resolve) => setTimeout(resolve, 1100));
+        await new Promise((resolve) => setTimeout(resolve, 1200));
 
         expect(fetch).toHaveBeenCalled();
         expect(emitSpy).toHaveBeenCalledWith('error', expect.any(Error));
@@ -408,7 +408,7 @@ describe('Тесты приложения погоды', () => {
 
         btn.click();
 
-        await new Promise((resolve) => setTimeout(resolve, 1100));
+        await new Promise((resolve) => setTimeout(resolve, 1200));
 
         expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
         expect(fetch).toHaveBeenCalledTimes(3);

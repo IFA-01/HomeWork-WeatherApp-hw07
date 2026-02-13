@@ -1,15 +1,23 @@
-class Router {
-  constructor() {
-    this.routes = [];
-    this.currentRoute = null;
-    this.params = {};
-  }
+type RouteHandler = (params: Record<string, string>) => void | Promise<void>;
 
-  addRoute(path, handler) {
+interface Route {
+  path: string;
+  handler: RouteHandler;
+}
+
+class Router {
+  routes: Route[] = [];
+  currentRoute: Route | null = null;
+  params: Record<string, string> = {};
+
+  addRoute(path: string, handler: RouteHandler): void {
     this.routes.push({ path, handler });
   }
 
-  matchRoute(routePath, currentPath) {
+  matchRoute(
+    routePath: string,
+    currentPath: string
+  ): Record<string, string> | null {
     if (routePath === '/' && currentPath === '/') {
       return {};
     }
@@ -21,7 +29,7 @@ class Router {
       return null;
     }
 
-    const params = {};
+    const params: Record<string, string> = {};
 
     for (let i = 0; i < routeParts.length; i++) {
       if (routeParts[i].startsWith(':')) {
@@ -35,7 +43,7 @@ class Router {
     return params;
   }
 
-  updateActiveNav(path = null) {
+  updateActiveNav(path: string | null = null): void {
     const currentPath = path || window.location.pathname;
     const navLinks = document.querySelectorAll('.nav-link');
 
@@ -52,7 +60,7 @@ class Router {
     });
   }
 
-  navigate(path = null) {
+  navigate(path: string | null = null): void {
     const targetPath = path || window.location.pathname;
 
     const cleanPath =
@@ -78,22 +86,25 @@ class Router {
     }
   }
 
-  go(path) {
+  go(path: string): void {
     window.history.pushState({}, '', path);
     this.navigate(path);
   }
 
-  init() {
+  init(): void {
     window.addEventListener('popstate', () => {
       this.navigate();
     });
 
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[data-router]');
+    document.addEventListener('click', (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[data-router]') as HTMLAnchorElement | null;
       if (link) {
         e.preventDefault();
         const path = link.getAttribute('href');
-        this.go(path);
+        if (path) {
+          this.go(path);
+        }
       }
     });
 

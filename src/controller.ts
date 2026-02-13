@@ -1,16 +1,20 @@
-import { fetchWeather, fetchGeo } from './model.js';
+import { fetchWeather, fetchGeo, WeatherData } from './model.js';
 import EventBus from './eventBus.js';
 import router from './router.js';
 import { renderHome, renderCityWeather, renderAbout } from './view.js';
 
-function initHomeHandlers() {
-  const cityInput = document.getElementById('cityInput');
-  const cityBtn = document.getElementById('cityBtn');
-  const geoBtn = document.getElementById('geoBtn');
+function initHomeHandlers(): void {
+  const cityInput = document.getElementById(
+    'cityInput'
+  ) as HTMLInputElement | null;
+  const cityBtn = document.getElementById(
+    'cityBtn'
+  ) as HTMLButtonElement | null;
+  const geoBtn = document.getElementById('geoBtn') as HTMLButtonElement | null;
 
   if (cityBtn && cityInput) {
-    const newCityBtn = cityBtn.cloneNode(true);
-    cityBtn.parentNode.replaceChild(newCityBtn, cityBtn);
+    const newCityBtn = cityBtn.cloneNode(true) as HTMLButtonElement;
+    cityBtn.parentNode?.replaceChild(newCityBtn, cityBtn);
 
     newCityBtn.addEventListener('click', async () => {
       const city = cityInput.value.trim();
@@ -33,8 +37,8 @@ function initHomeHandlers() {
   }
 
   if (geoBtn) {
-    const newGeoBtn = geoBtn.cloneNode(true);
-    geoBtn.parentNode.replaceChild(newGeoBtn, geoBtn);
+    const newGeoBtn = geoBtn.cloneNode(true) as HTMLButtonElement;
+    geoBtn.parentNode?.replaceChild(newGeoBtn, geoBtn);
 
     newGeoBtn.addEventListener('click', async () => {
       EventBus.emit('loading', true);
@@ -52,13 +56,13 @@ function initHomeHandlers() {
   }
 }
 
-export function init() {
+export function init(): void {
   router.addRoute('/', () => {
     renderHome();
     setTimeout(initHomeHandlers, 0);
   });
 
-  router.addRoute('/city/:cityName', async (params) => {
+  router.addRoute('/city/:cityName', async (params: Record<string, string>) => {
     const cityName = decodeURIComponent(params.cityName);
 
     EventBus.emit('loading', true);
