@@ -29,7 +29,6 @@ export default defineConfig([
     },
 
     rules: {
-      'no-console': 'warn',
       eqeqeq: 'off',
     },
   },
