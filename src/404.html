@@ -13,10 +13,22 @@
           window.location.hostname === 'ifa-01.github.io' ||
           window.location.hostname.endsWith('.github.io');
 
-        if (isGitHubPages && path.startsWith(basePath)) {
-          var routePath = path.slice(basePath.length) || '/';
-
-          sessionStorage.setItem('redirectPath', routePath);
+        if (isGitHubPages) {
+          if (path.startsWith(basePath)) {
+            var routePath = path.slice(basePath.length) || '/';
+            sessionStorage.setItem('redirectPath', routePath);
+          } else if (path === '/404.html' || path.endsWith('/404.html')) {
+            var referrer = document.referrer;
+            if (referrer) {
+              try {
+                var referrerPath = new URL(referrer).pathname;
+                if (referrerPath.startsWith(basePath)) {
+                  var routePath = referrerPath.slice(basePath.length) || '/';
+                  sessionStorage.setItem('redirectPath', routePath);
+                }
+              } catch (e) {}
+            }
+          }
         }
       })();
     </script>
