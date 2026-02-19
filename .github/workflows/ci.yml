@@ -49,6 +49,7 @@ jobs:
   deploy:
     needs: ci
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/Routes'
     permissions:
       contents: write
@@ -87,4 +88,3 @@ jobs:
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
           disable_nojekyll: false
-          cname: false
