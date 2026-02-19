@@ -67,6 +67,14 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Verify files before deploy
+        run: |
+          ls -la dist/
+          test -f dist/index.html || (echo "ERROR: index.html not found!" && exit 1)
+          test -f dist/404.html || (echo "ERROR: 404.html not found!" && exit 1)
+          test -f dist/.nojekyll || (echo "ERROR: .nojekyll not found!" && exit 1)
+          echo "All required files are present"
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -75,6 +83,8 @@ jobs:
           publish_branch: gh-pages
           commit_message: 'Deploy: ${{ github.event.head_commit.message }}'
           allow_empty_commit: true
-          force_orphan: false
+          force_orphan: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
+          disable_nojekyll: false
+          cname: false
