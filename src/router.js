@@ -126,7 +126,13 @@ class Router {
       }
     });
 
-    this.navigate();
+    const redirectPath = sessionStorage.getItem('redirectPath');
+    if (redirectPath) {
+      sessionStorage.removeItem('redirectPath');
+      this.go(redirectPath);
+    } else {
+      this.navigate();
+    }
   }
 }
 

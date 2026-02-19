@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Погода</title>
+    <script>
+      (function () {
+        var path = window.location.pathname;
+        var basePath = '/HomeWork-WeatherApp-hw07';
+
+        var isGitHubPages =
+          window.location.hostname === 'ifa-01.github.io' ||
+          window.location.hostname.endsWith('.github.io');
+
+        if (isGitHubPages && path.startsWith(basePath)) {
+          var routePath = path.slice(basePath.length) || '/';
+
+          sessionStorage.setItem('redirectPath', routePath);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div class="weather-app" id="weather-app">
