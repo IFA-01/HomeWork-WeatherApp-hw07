@@ -1,0 +1,26 @@
+<!doctype html><html lang="ru"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Погода</title><script>(function () {
+        var path = window.location.pathname;
+        var basePath = '/HomeWork-WeatherApp-hw07';
+
+        var isGitHubPages =
+          window.location.hostname === 'ifa-01.github.io' ||
+          window.location.hostname.endsWith('.github.io');
+
+        if (isGitHubPages) {
+          if (path.startsWith(basePath)) {
+            var routePath = path.slice(basePath.length) || '/';
+            sessionStorage.setItem('redirectPath', routePath);
+          } else if (path === '/404.html' || path.endsWith('/404.html')) {
+            var referrer = document.referrer;
+            if (referrer) {
+              try {
+                var referrerPath = new URL(referrer).pathname;
+                if (referrerPath.startsWith(basePath)) {
+                  var routePath = referrerPath.slice(basePath.length) || '/';
+                  sessionStorage.setItem('redirectPath', routePath);
+                }
+              } catch (e) {}
+            }
+          }
+        }
+      })();</script><script defer="defer" src="/HomeWork-WeatherApp-hw07/bundle.e46ce453227b50e68848.js"></script><link href="/HomeWork-WeatherApp-hw07/style.1c0cdbbfbe837ee0bf91.css" rel="stylesheet"></head><body><div class="weather-app" id="weather-app"><h1><i class="fas fa-cloud-sun"></i> Погода</h1><nav class="navigation"><a href="/" data-router class="nav-link" id="navHome"><i class="fas fa-home"></i> Главная </a><a href="/about" data-router class="nav-link" id="navAbout"><i class="fas fa-info-circle"></i> О приложении</a></nav><div id="router-content"></div></div></body></html>
