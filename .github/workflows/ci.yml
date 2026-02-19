@@ -68,6 +68,9 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Create .nojekyll file
+        run: touch dist/.nojekyll
+
       - name: Verify files before deploy
         run: |
           ls -la dist/
