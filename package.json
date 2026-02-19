@@ -2,7 +2,7 @@
   "name": "homework-7-weather-app",
   "version": "1.0.0",
   "description": "",
-  "homepage": "hhttps://ifa-01.github.io/HomeWork-WeatherApp-hw07/",
+  "homepage": "https://ifa-01.github.io/HomeWork-WeatherApp-hw07/",
   "type": "module",
   "main": "script.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
-    "predeploy": "npm run build",
+    "build:gh-pages": "webpack --mode production --env GITHUB_PAGES=true",
+    "predeploy": "npm run build:gh-pages",
     "deploy": "gh-pages -d dist",
     "test": "jest",
     "test:coverage": "jest --coverage",
@@ -41,6 +42,8 @@
     "babel-loader": "^10.0.0",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "baseline-browser-mapping": "^2.9.19",
+    "copy-webpack-plugin": "^13.0.1",
+    "core-js": "^3.47.0",
     "css-loader": "^7.1.2",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
@@ -56,11 +59,10 @@
     "mini-css-extract-plugin": "^2.9.4",
     "prettier": "3.7.4",
     "style-loader": "^4.0.0",
+    "ts-jest": "^29.4.5",
+    "util": "^0.12.5",
     "webpack": "^5.103.0",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2",
-    "core-js": "^3.47.0",
-    "ts-jest": "^29.4.5",
-    "util": "^0.12.5"
+    "webpack-dev-server": "^5.2.2"
   }
 }
