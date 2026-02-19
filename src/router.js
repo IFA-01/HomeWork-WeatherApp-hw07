@@ -3,6 +3,32 @@ class Router {
     this.routes = [];
     this.currentRoute = null;
     this.params = {};
+    this.basePath = this.getBasePath();
+  }
+
+  getBasePath() {
+    const pathname = window.location.pathname;
+    const hostname = window.location.hostname;
+
+    if (hostname !== 'ifa-01.github.io' && !hostname.endsWith('.github.io')) {
+      return '';
+    }
+    const possibleBasePaths = ['/HomeWork-WeatherApp-hw07'];
+
+    for (const basePath of possibleBasePaths) {
+      if (pathname.startsWith(basePath)) {
+        return basePath;
+      }
+    }
+
+    return '';
+  }
+
+  normalizePath(path) {
+    if (this.basePath && path.startsWith(this.basePath)) {
+      return path.slice(this.basePath.length) || '/';
+    }
+    return path;
   }
 
   addRoute(path, handler) {
@@ -37,13 +63,14 @@ class Router {
 
   updateActiveNav(path = null) {
     const currentPath = path || window.location.pathname;
+    const normalizedPath = this.normalizePath(currentPath);
     const navLinks = document.querySelectorAll('.nav-link');
 
     navLinks.forEach((link) => {
       const linkPath = link.getAttribute('href');
       if (
-        linkPath === currentPath ||
-        (linkPath === '/' && currentPath === '/')
+        linkPath === normalizedPath ||
+        (linkPath === '/' && normalizedPath === '/')
       ) {
         link.classList.add('active');
       } else {
@@ -54,9 +81,10 @@ class Router {
 
   navigate(path = null) {
     const targetPath = path || window.location.pathname;
+    const normalizedPath = this.normalizePath(targetPath);
 
     const cleanPath =
-      targetPath === '/' ? '/' : targetPath.replace(/^\/+|\/+$/g, '');
+      normalizedPath === '/' ? '/' : normalizedPath.replace(/^\/+|\/+$/g, '');
 
     for (const route of this.routes) {
       const routePath =
@@ -67,20 +95,21 @@ class Router {
         this.currentRoute = route;
         this.params = params;
         route.handler(params);
-        const fullPath = targetPath === '/' ? '/' : targetPath;
+        const fullPath = normalizedPath === '/' ? '/' : normalizedPath;
         this.updateActiveNav(fullPath);
         return;
       }
     }
 
-    if (targetPath !== '/') {
+    if (normalizedPath !== '/') {
       this.navigate('/');
     }
   }
 
   go(path) {
-    window.history.pushState({}, '', path);
-    this.navigate(path);
+    const fullPath = this.basePath ? `${this.basePath}${path}` : path;
+    window.history.pushState({}, '', fullPath);
+    this.navigate(fullPath);
   }
 
   init() {
