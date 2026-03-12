@@ -9,47 +9,16 @@
     <div class="weather-app" id="weather-app">
       <h1><i class="fas fa-cloud-sun"></i> Погода</h1>
 
-      <div class="input-group">
-        <input type="text" id="cityInput" placeholder="Введите город" />
-      </div>
+      <nav class="navigation">
+        <a href="/" data-router class="nav-link" id="navHome">
+          <i class="fas fa-home"></i> Главная
+        </a>
+        <a href="/about" data-router class="nav-link" id="navAbout">
+          <i class="fas fa-info-circle"></i> О приложении
+        </a>
+      </nav>
 
-      <div class="buttons">
-        <button class="city-btn" id="cityBtn">
-          <i class="fas fa-city"></i> По городу
-        </button>
-        <button class="geo-btn" id="geoBtn">
-          <i class="fas fa-location-arrow"></i> По геолокации
-        </button>
-      </div>
-
-      <div class="loading" id="loading">
-        <i class="fas fa-spinner fa-spin"></i> Загрузка...
-      </div>
-
-      <div class="error" id="error">
-        Город не найден. Проверьте правильность написания.
-      </div>
-
-      <div class="weather-info" id="weatherInfo">
-        <div class="location" id="location">Москва</div>
-        <div class="temp" id="temperature">15°C</div>
-        <div class="description" id="description">Облачно</div>
-
-        <div class="details">
-          <div class="detail">
-            <i class="fas fa-wind"></i>
-            <div id="wind">5 м/с</div>
-          </div>
-          <div class="detail">
-            <i class="fas fa-tint"></i>
-            <div id="humidity">65%</div>
-          </div>
-          <div class="detail">
-            <i class="fas fa-temperature-high"></i>
-            <div id="feelsLike">14°C</div>
-          </div>
-        </div>
-      </div>
+      <div id="router-content"></div>
     </div>
   </body>
 </html>
