@@ -1,7 +1,41 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useHistoryState } from './hooks/useHistory';
 import { useWeather } from './hooks/useWeather';
 import type { WeatherState } from './types/weather';
+
+const BASE_PATH = typeof window !== 'undefined' && window.location.pathname.startsWith('/HomeWork-WeatherApp-hw07')
+  ? '/HomeWork-WeatherApp-hw07'
+  : '';
+
+function getPathname(): string {
+  if (typeof window === 'undefined') return '/';
+  const path = window.location.pathname.replace(BASE_PATH, '') || '/';
+  return path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
+}
+
+function AboutScreen({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="about-content">
+      <h2>О приложении</h2>
+      <p>
+        Приложение «Погода» позволяет узнать текущую погоду в любом городе мира.
+      </p>
+      <p>
+        Вы можете найти погоду по названию города или использовать геолокацию
+        для определения погоды в вашем текущем местоположении.
+      </p>
+      <p>
+        Приложение использует API OpenWeatherMap для получения актуальных
+        данных о погоде.
+      </p>
+      <div className="back-button-container">
+        <button type="button" className="back-btn" onClick={onBack}>
+          <i className="fas fa-arrow-left"></i> Назад
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function WeatherResult({
   weather,
@@ -84,6 +118,7 @@ function HistoryList({
 }
 
 export default function App() {
+  const [pathname, setPathname] = useState(getPathname);
   const [history, addToHistory] = useHistoryState();
   const cityInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,6 +132,35 @@ export default function App() {
     clearWeather,
   } = useWeather(addToHistory);
 
+  useEffect(() => {
+    const handlePopState = () => setPathname(getPathname());
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const link = (e.target as Element).closest?.('a[data-router]') as HTMLAnchorElement | null;
+      if (!link) return;
+      e.preventDefault();
+      const path = link.getAttribute('href') ?? '/';
+      const fullPath = BASE_PATH ? BASE_PATH + path : path;
+      window.history.pushState({}, '', fullPath);
+      setPathname(path === '/' ? '/' : path);
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
+
+  useEffect(() => {
+    const links = document.querySelectorAll('.nav-link');
+    links.forEach((el) => {
+      const href = el.getAttribute('href') ?? '/';
+      const isActive = (href === '/' && pathname === '/') || (href !== '/' && pathname === href);
+      el.classList.toggle('active', isActive);
+    });
+  }, [pathname]);
+
   const handleCitySubmit = () => {
     const value = cityInputRef.current?.value ?? '';
     fetchByCity(value);
@@ -105,6 +169,12 @@ export default function App() {
   const handleSelectFromHistory = (city: string) => {
     fetchByCity(city);
   };
+
+  const goBack = () => window.history.back();
+
+  if (pathname === '/about') {
+    return <AboutScreen onBack={goBack} />;
+  }
 
   return (
     <>
