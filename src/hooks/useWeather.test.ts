@@ -73,4 +73,71 @@ describe('useWeather', () => {
     });
     expect(result.current.weather).toBeNull();
   });
+
+  test('fetchByCity sets error when API returns cod !== 200', async () => {
+    mockFetchWeather.mockResolvedValueOnce({ cod: 404, message: 'city not found' });
+    const { result } = renderHook(() => useWeather());
+    await act(async () => {
+      result.current.fetchByCity('InvalidCity');
+    });
+    await waitFor(() => {
+      expect(result.current.error).toContain('Город не найден');
+      expect(result.current.weather).toBeNull();
+    });
+  });
+
+  test('fetchByCity catch uses message for non-Error', async () => {
+    mockFetchWeather.mockRejectedValueOnce('string error');
+    const { result } = renderHook(() => useWeather());
+    await act(async () => {
+      result.current.fetchByCity('X');
+    });
+    await waitFor(() => {
+      expect(result.current.error).toBeTruthy();
+    });
+  });
+
+  test('fetchByGeo success sets weather and calls onSuccess', async () => {
+    const onSuccess = jest.fn();
+    mockFetchGeo.mockResolvedValueOnce('London');
+    mockFetchWeather.mockResolvedValueOnce({
+      main: { temp: 12, feels_like: 10, humidity: 75 },
+      weather: [{ description: 'cloudy' }],
+      wind: { speed: 4 },
+    });
+    const { result } = renderHook(() => useWeather(onSuccess));
+    await act(async () => {
+      result.current.fetchByGeo();
+    });
+    await waitFor(() => {
+      expect(result.current.weather).not.toBeNull();
+      expect(result.current.weather?.city).toBe('London');
+      expect(onSuccess).toHaveBeenCalledWith('London');
+    });
+  });
+
+  test('fetchByGeo sets error when fetchGeo fails', async () => {
+    mockFetchGeo.mockRejectedValueOnce(new Error('Geolocation denied'));
+    const { result } = renderHook(() => useWeather());
+    await act(async () => {
+      result.current.fetchByGeo();
+    });
+    await waitFor(() => {
+      expect(result.current.error).toContain('Geolocation denied');
+      expect(result.current.weather).toBeNull();
+    });
+  });
+
+  test('fetchByGeo sets error when API returns cod !== 200', async () => {
+    mockFetchGeo.mockResolvedValueOnce('City');
+    mockFetchWeather.mockResolvedValueOnce({ cod: 404 });
+    const { result } = renderHook(() => useWeather());
+    await act(async () => {
+      result.current.fetchByGeo();
+    });
+    await waitFor(() => {
+      expect(result.current.error).toContain('Город не найден');
+      expect(result.current.weather).toBeNull();
+    });
+  });
 });
