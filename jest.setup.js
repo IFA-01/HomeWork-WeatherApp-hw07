@@ -16,7 +16,9 @@ beforeAll(() => {
       errorMessage.includes('Not implemented: navigation') ||
       errorMessage.includes('Error: Not implemented') ||
       (firstArg?.type === 'not implemented' &&
-        errorMessage.includes('navigation'))
+        errorMessage.includes('navigation')) ||
+      (errorMessage.includes('An update to') &&
+        errorMessage.includes('was not wrapped in act(...)'))
     ) {
       return;
     }

@@ -1,9 +1,13 @@
 module.exports = {
-  preset: 'ts-jest',
   testEnvironment: 'jsdom',
   collectCoverageFrom: [
-    'src/**/*.{js,ts}',
-    '!**/*.test.{js,ts}',
+    'src/**/*.js',
+    'src/**/*.ts',
+    'src/**/*.tsx',
+    '!**/*.test.js',
+    '!**/*.test.ts',
+    '!**/*.test.tsx',
+    '!**/*.d.ts',
     '!**/node_modules/**',
   ],
   coverageThreshold: {
@@ -31,24 +35,10 @@ module.exports = {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {
-    '^.+\\.ts$': [
-      'ts-jest',
-      {
-        useESM: true,
-        tsconfig: {
-          esModuleInterop: true,
-          allowSyntheticDefaultImports: true,
-          module: 'ES2020',
-          moduleResolution: 'node',
-        },
-      },
-    ],
-    '^.+\\.js$': 'babel-jest',
+    '^.+\\.(js|ts|tsx)$': 'babel-jest',
   },
-  extensionsToTreatAsEsm: ['.ts'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transformIgnorePatterns: [
     'node_modules/(?!(jest-)?@?babel|jsdom|whatwg-url|html-encoding-sniffer|@exodus)',
   ],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js', '@testing-library/jest-dom'],
 };
