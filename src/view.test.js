@@ -355,14 +355,16 @@ describe('Тесты view.js', () => {
   });
 
   describe('EventBus обработчики', () => {
-    test('Должен обрабатывать событие weather:loaded и добавлять в историю', () => {
+    test('Должен обрабатывать событие weather:loaded и добавлять в историю', async () => {
       document.body.innerHTML = `
         <div id="router-content">
           <div id="historyList"></div>
         </div>
       `;
 
-      const EventBus = require('./eventBus.js').default;
+      // Import view to register EventBus handlers
+      await import('./view.js');
+      const EventBus = (await import('./eventBus.js')).default;
       EventBus.emit('weather:loaded', { city: 'Moscow' });
 
       const history = getHistory();
@@ -370,14 +372,16 @@ describe('Тесты view.js', () => {
       expect(history[0]).toBe('Moscow');
     });
 
-    test('Должен обрабатывать событие error с объектом', () => {
+    test('Должен обрабатывать событие error с объектом', async () => {
       document.body.innerHTML = `
         <div id="router-content">
           <div id="error"></div>
         </div>
       `;
 
-      const EventBus = require('./eventBus.js').default;
+      // Import view to register EventBus handlers
+      await import('./view.js');
+      const EventBus = (await import('./eventBus.js')).default;
       EventBus.emit('error', { message: 'Тестовая ошибка' });
 
       const errorEl = document.getElementById('error');
@@ -385,28 +389,32 @@ describe('Тесты view.js', () => {
       expect(errorEl.style.display).toBe('block');
     });
 
-    test('Должен обрабатывать событие error со строкой', () => {
+    test('Должен обрабатывать событие error со строкой', async () => {
       document.body.innerHTML = `
         <div id="router-content">
           <div id="error"></div>
         </div>
       `;
 
-      const EventBus = require('./eventBus.js').default;
+      // Import view to register EventBus handlers
+      await import('./view.js');
+      const EventBus = (await import('./eventBus.js')).default;
       EventBus.emit('error', 'Строковая ошибка');
 
       const errorEl = document.getElementById('error');
       expect(errorEl.textContent).toBe('Строковая ошибка');
     });
 
-    test('Должен обрабатывать событие loading', () => {
+    test('Должен обрабатывать событие loading', async () => {
       document.body.innerHTML = `
         <div id="router-content">
           <div id="loading"></div>
         </div>
       `;
 
-      const EventBus = require('./eventBus.js').default;
+      // Import view to register EventBus handlers
+      await import('./view.js');
+      const EventBus = (await import('./eventBus.js')).default;
       EventBus.emit('loading', true);
 
       const loadingEl = document.getElementById('loading');

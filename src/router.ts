@@ -1,12 +1,21 @@
+type RouteHandler = (params: Record<string, string>) => void | Promise<void>;
+
+interface Route {
+  path: string;
+  handler: RouteHandler;
+}
+
 class Router {
+  routes: Route[] = [];
+  currentRoute: Route | null = null;
+  params: Record<string, string> = {};
+  private basePath: string;
+
   constructor() {
-    this.routes = [];
-    this.currentRoute = null;
-    this.params = {};
     this.basePath = this.getBasePath();
   }
 
-  getBasePath() {
+  getBasePath(): string {
     const pathname = window.location.pathname;
     const hostname = window.location.hostname;
 
@@ -24,18 +33,21 @@ class Router {
     return '';
   }
 
-  normalizePath(path) {
+  normalizePath(path: string): string {
     if (this.basePath && path.startsWith(this.basePath)) {
       return path.slice(this.basePath.length) || '/';
     }
     return path;
   }
 
-  addRoute(path, handler) {
+  addRoute(path: string, handler: RouteHandler): void {
     this.routes.push({ path, handler });
   }
 
-  matchRoute(routePath, currentPath) {
+  matchRoute(
+    routePath: string,
+    currentPath: string
+  ): Record<string, string> | null {
     if (routePath === '/' && currentPath === '/') {
       return {};
     }
@@ -47,7 +59,7 @@ class Router {
       return null;
     }
 
-    const params = {};
+    const params: Record<string, string> = {};
 
     for (let i = 0; i < routeParts.length; i++) {
       if (routeParts[i].startsWith(':')) {
@@ -61,7 +73,7 @@ class Router {
     return params;
   }
 
-  updateActiveNav(path = null) {
+  updateActiveNav(path: string | null = null): void {
     const currentPath = path || window.location.pathname;
     const normalizedPath = this.normalizePath(currentPath);
     const navLinks = document.querySelectorAll('.nav-link');
@@ -79,7 +91,7 @@ class Router {
     });
   }
 
-  navigate(path = null) {
+  navigate(path: string | null = null): void {
     const targetPath = path || window.location.pathname;
     const normalizedPath = this.normalizePath(targetPath);
 
@@ -106,23 +118,26 @@ class Router {
     }
   }
 
-  go(path) {
+  go(path: string): void {
     const fullPath = this.basePath ? `${this.basePath}${path}` : path;
     window.history.pushState({}, '', fullPath);
     this.navigate(fullPath);
   }
 
-  init() {
+  init(): void {
     window.addEventListener('popstate', () => {
       this.navigate();
     });
 
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[data-router]');
+    document.addEventListener('click', (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[data-router]') as HTMLAnchorElement | null;
       if (link) {
         e.preventDefault();
         const path = link.getAttribute('href');
-        this.go(path);
+        if (path) {
+          this.go(path);
+        }
       }
     });
 
