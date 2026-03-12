@@ -3,9 +3,11 @@ import { useHistoryState } from './hooks/useHistory';
 import { useWeather } from './hooks/useWeather';
 import type { WeatherState } from './types/weather';
 
-const BASE_PATH = typeof window !== 'undefined' && window.location.pathname.startsWith('/HomeWork-WeatherApp-hw07')
-  ? '/HomeWork-WeatherApp-hw07'
-  : '';
+const BASE_PATH =
+  typeof window !== 'undefined' &&
+  window.location.pathname.startsWith('/HomeWork-WeatherApp-hw07')
+    ? '/HomeWork-WeatherApp-hw07'
+    : '';
 
 function getPathname(): string {
   if (typeof window === 'undefined') return '/';
@@ -25,8 +27,8 @@ function AboutScreen({ onBack }: { onBack: () => void }) {
         для определения погоды в вашем текущем местоположении.
       </p>
       <p>
-        Приложение использует API OpenWeatherMap для получения актуальных
-        данных о погоде.
+        Приложение использует API OpenWeatherMap для получения актуальных данных
+        о погоде.
       </p>
       <div className="back-button-container">
         <button type="button" className="back-btn" onClick={onBack}>
@@ -140,7 +142,9 @@ export default function App() {
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      const link = (e.target as Element).closest?.('a[data-router]') as HTMLAnchorElement | null;
+      const link = (e.target as Element).closest?.(
+        'a[data-router]'
+      ) as HTMLAnchorElement | null;
       if (!link) return;
       e.preventDefault();
       const path = link.getAttribute('href') ?? '/';
@@ -156,7 +160,9 @@ export default function App() {
     const links = document.querySelectorAll('.nav-link');
     links.forEach((el) => {
       const href = el.getAttribute('href') ?? '/';
-      const isActive = (href === '/' && pathname === '/') || (href !== '/' && pathname === href);
+      const isActive =
+        (href === '/' && pathname === '/') ||
+        (href !== '/' && pathname === href);
       el.classList.toggle('active', isActive);
     });
   }, [pathname]);
