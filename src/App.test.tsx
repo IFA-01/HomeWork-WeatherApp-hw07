@@ -128,14 +128,16 @@ describe('App', () => {
     expect(aboutLink).toBeInTheDocument();
     if (aboutLink) fireEvent.click(aboutLink);
     await waitFor(() => {
-      expect(
-        document.querySelector('.about-content h2')
-      ).toHaveTextContent('О приложении');
+      expect(document.querySelector('.about-content h2')).toHaveTextContent(
+        'О приложении'
+      );
     });
   });
 
   test('About screen back button calls history.back', async () => {
-    const backSpy = jest.spyOn(window.history, 'back').mockImplementation(() => {});
+    const backSpy = jest
+      .spyOn(window.history, 'back')
+      .mockImplementation(() => {});
     renderApp();
     const aboutLink = document.querySelector('a[href="/about"]');
     if (aboutLink) fireEvent.click(aboutLink);
@@ -169,7 +171,8 @@ describe('App', () => {
       fireEvent.keyDown(input, { key: 'Enter' });
     }
     await waitFor(
-      () => expect(document.getElementById('temperature')).toHaveTextContent('5°C'),
+      () =>
+        expect(document.getElementById('temperature')).toHaveTextContent('5°C'),
       { timeout: 3000 }
     );
   });
@@ -181,7 +184,9 @@ describe('App', () => {
     await waitFor(() => {
       expect(document.getElementById('error')).toBeInTheDocument();
     });
-    const closeBtn = document.querySelector('#error button[aria-label="Закрыть"]');
+    const closeBtn = document.querySelector(
+      '#error button[aria-label="Закрыть"]'
+    );
     if (closeBtn) fireEvent.click(closeBtn);
     await waitFor(() => {
       expect(document.getElementById('error')).not.toBeInTheDocument();
