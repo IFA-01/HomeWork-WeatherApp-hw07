@@ -75,7 +75,10 @@ describe('useWeather', () => {
   });
 
   test('fetchByCity sets error when API returns cod !== 200', async () => {
-    mockFetchWeather.mockResolvedValueOnce({ cod: 404, message: 'city not found' });
+    mockFetchWeather.mockResolvedValueOnce({
+      cod: 404,
+      message: 'city not found',
+    });
     const { result } = renderHook(() => useWeather());
     await act(async () => {
       result.current.fetchByCity('InvalidCity');
