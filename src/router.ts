@@ -9,6 +9,36 @@ class Router {
   routes: Route[] = [];
   currentRoute: Route | null = null;
   params: Record<string, string> = {};
+  private basePath: string;
+
+  constructor() {
+    this.basePath = this.getBasePath();
+  }
+
+  getBasePath(): string {
+    const pathname = window.location.pathname;
+    const hostname = window.location.hostname;
+
+    if (hostname !== 'ifa-01.github.io' && !hostname.endsWith('.github.io')) {
+      return '';
+    }
+    const possibleBasePaths = ['/HomeWork-WeatherApp-hw07'];
+
+    for (const basePath of possibleBasePaths) {
+      if (pathname.startsWith(basePath)) {
+        return basePath;
+      }
+    }
+
+    return '';
+  }
+
+  normalizePath(path: string): string {
+    if (this.basePath && path.startsWith(this.basePath)) {
+      return path.slice(this.basePath.length) || '/';
+    }
+    return path;
+  }
 
   addRoute(path: string, handler: RouteHandler): void {
     this.routes.push({ path, handler });
@@ -45,13 +75,14 @@ class Router {
 
   updateActiveNav(path: string | null = null): void {
     const currentPath = path || window.location.pathname;
+    const normalizedPath = this.normalizePath(currentPath);
     const navLinks = document.querySelectorAll('.nav-link');
 
     navLinks.forEach((link) => {
       const linkPath = link.getAttribute('href');
       if (
-        linkPath === currentPath ||
-        (linkPath === '/' && currentPath === '/')
+        linkPath === normalizedPath ||
+        (linkPath === '/' && normalizedPath === '/')
       ) {
         link.classList.add('active');
       } else {
@@ -62,9 +93,10 @@ class Router {
 
   navigate(path: string | null = null): void {
     const targetPath = path || window.location.pathname;
+    const normalizedPath = this.normalizePath(targetPath);
 
     const cleanPath =
-      targetPath === '/' ? '/' : targetPath.replace(/^\/+|\/+$/g, '');
+      normalizedPath === '/' ? '/' : normalizedPath.replace(/^\/+|\/+$/g, '');
 
     for (const route of this.routes) {
       const routePath =
@@ -75,20 +107,21 @@ class Router {
         this.currentRoute = route;
         this.params = params;
         route.handler(params);
-        const fullPath = targetPath === '/' ? '/' : targetPath;
+        const fullPath = normalizedPath === '/' ? '/' : normalizedPath;
         this.updateActiveNav(fullPath);
         return;
       }
     }
 
-    if (targetPath !== '/') {
+    if (normalizedPath !== '/') {
       this.navigate('/');
     }
   }
 
   go(path: string): void {
-    window.history.pushState({}, '', path);
-    this.navigate(path);
+    const fullPath = this.basePath ? `${this.basePath}${path}` : path;
+    window.history.pushState({}, '', fullPath);
+    this.navigate(fullPath);
   }
 
   init(): void {
@@ -108,7 +141,13 @@ class Router {
       }
     });
 
-    this.navigate();
+    const redirectPath = sessionStorage.getItem('redirectPath');
+    if (redirectPath) {
+      sessionStorage.removeItem('redirectPath');
+      this.go(redirectPath);
+    } else {
+      this.navigate();
+    }
   }
 }
 

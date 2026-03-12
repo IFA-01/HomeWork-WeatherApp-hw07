@@ -30,6 +30,12 @@ module.exports = (env, argv) => {
         minify: isProduction,
         inject: true,
       }),
+      new HtmlWebpackPlugin({
+        template: './src/404.html',
+        filename: '404.html',
+        minify: isProduction,
+        inject: true,
+      }),
       ...(isProduction
         ? [
             new MiniCssExtractPlugin({
