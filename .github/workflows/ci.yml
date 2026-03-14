@@ -2,15 +2,8 @@ name: CI & Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      [
-        dev,
-        main,
-        dev-refactored-EventBus,
-        dev-refactored-MVC,
-        Routes,
-        TypeScript,
-      ]
+    branches: ['**']
+  workflow_dispatch:
 
 jobs:
   ci:
@@ -58,7 +51,8 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/Routes'
+    # Deploy to GitHub Pages only from main (e.g. after merging PR)
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: write
       pages: write

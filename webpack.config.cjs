@@ -17,6 +17,14 @@ module.exports = (env, argv) => {
 
     mode: argv.mode || 'production',
 
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      extensionAlias: {
+        '.js': ['.ts', '.js'],
+        '.jsx': ['.tsx', '.jsx'],
+      },
+    },
+
     output: {
       filename: jsFilename,
       path: path.resolve(__dirname, 'dist'),
@@ -44,22 +52,19 @@ module.exports = (env, argv) => {
           ]
         : []),
     ],
-    resolve: {
-      extensions: ['.ts', '.tsx', '.js', '.jsx'],
-      extensionAlias: {
-        '.js': ['.ts', '.js'],
-        '.jsx': ['.tsx', '.jsx'],
-      },
-    },
     module: {
       rules: [
         {
-          test: /\.tsx?$/,
+          test: /\.(ts|tsx)$/,
           exclude: /node_modules/,
           use: {
-            loader: 'ts-loader',
+            loader: 'babel-loader',
             options: {
-              transpileOnly: false,
+              presets: [
+                ['@babel/preset-env', { modules: false }],
+                ['@babel/preset-react', { runtime: 'automatic' }],
+                '@babel/preset-typescript',
+              ],
             },
           },
         },

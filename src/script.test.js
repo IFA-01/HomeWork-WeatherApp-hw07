@@ -1,7 +1,7 @@
 import { fetchWeather, fetchGeo } from './model.js';
 import { init } from './controller.js';
 import EventBus from './eventBus.js';
-import router from './router.js';
+import { waitFor } from '@testing-library/react';
 import './view.js';
 
 global.alert = jest.fn();
@@ -57,10 +57,6 @@ describe('Тесты приложения погоды', () => {
     weatherApp.appendChild(routerContent);
 
     document.body.appendChild(weatherApp);
-
-    router.routes = [];
-    router.currentRoute = null;
-    router.params = {};
 
     const localStorageMock = {
       getItem: jest.fn((key) => localStorageStore[key] || null),
@@ -236,14 +232,7 @@ describe('Тесты приложения погоды', () => {
 
   describe('3. Тест UI: кнопка "По городу"', () => {
     test('3.1 Нажатие кнопки с пустым полем ввода', async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const cityInput = document.getElementById('cityInput');
-      const cityBtn = document.getElementById('cityBtn');
-
-      if (!cityInput || !cityBtn) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+      await waitFor(() => {});
 
       const input = document.getElementById('cityInput');
       const btn = document.getElementById('cityBtn');
@@ -252,21 +241,19 @@ describe('Тесты приложения погоды', () => {
         input.value = '';
         btn.click();
 
-        await new Promise((resolve) => setTimeout(resolve, 10));
-
-        expect(EventBus.events['error'] || alert).toBeDefined();
+        await waitFor(() => {
+          const errorEl = document.getElementById('error');
+          const hasError =
+            errorEl &&
+            errorEl.textContent &&
+            errorEl.textContent.includes('Введите название города');
+          expect(hasError || global.alert.mock.calls.length > 0).toBe(true);
+        });
       }
     });
 
-    test('3.2 Успешный запрос погоды по городу с навигацией', async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const cityInput = document.getElementById('cityInput');
-      const cityBtn = document.getElementById('cityBtn');
-
-      if (!cityInput || !cityBtn) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+    test('3.2 Успешный запрос погоды по городу с отображением погоды', async () => {
+      await waitFor(() => {});
 
       const input = document.getElementById('cityInput');
       const btn = document.getElementById('cityBtn');
@@ -281,34 +268,29 @@ describe('Тесты приложения погоды', () => {
           text: jest.fn().mockResolvedValue(JSON.stringify(mockWeatherData)),
         });
 
-        const emitSpy = jest.spyOn(EventBus, 'emit');
-        const routerGoSpy = jest.spyOn(router, 'go');
-
         input.value = 'Moscow';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
         btn.click();
 
-        await new Promise((resolve) => setTimeout(resolve, 1100));
-
-        expect(fetch).toHaveBeenCalled();
-        expect(emitSpy).toHaveBeenCalledWith(
-          'weather:loaded',
-          expect.objectContaining({ city: 'Moscow' })
+        await waitFor(
+          () => {
+            expect(global.fetch).toHaveBeenCalled();
+            const tempEl = document.getElementById('temperature');
+            const history = localStorageStore['weatherHistory']
+              ? JSON.parse(localStorageStore['weatherHistory'])
+              : [];
+            expect(
+              (tempEl && tempEl.textContent.includes('°C')) ||
+                history.includes('Moscow')
+            ).toBe(true);
+          },
+          { timeout: 3000 }
         );
-        expect(routerGoSpy).toHaveBeenCalledWith('/city/Moscow');
-        emitSpy.mockRestore();
-        routerGoSpy.mockRestore();
       }
     }, 10000);
 
     test('3.3 Обработка ошибки при запросе погоды по городу', async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const cityInput = document.getElementById('cityInput');
-      const cityBtn = document.getElementById('cityBtn');
-
-      if (!cityInput || !cityBtn) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+      await waitFor(() => {});
 
       const input = document.getElementById('cityInput');
       const btn = document.getElementById('cityBtn');
@@ -316,28 +298,25 @@ describe('Тесты приложения погоды', () => {
       if (input && btn) {
         global.fetch.mockRejectedValueOnce(new Error('Network error'));
 
-        const emitSpy = jest.spyOn(EventBus, 'emit');
-
         input.value = 'Moscow';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
         btn.click();
 
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-
-        expect(fetch).toHaveBeenCalled();
-        expect(emitSpy).toHaveBeenCalledWith('error', expect.any(Error));
-        emitSpy.mockRestore();
+        await waitFor(
+          () => {
+            expect(global.fetch).toHaveBeenCalled();
+            const errorEl = document.getElementById('error');
+            expect(errorEl && errorEl.textContent).toBeTruthy();
+          },
+          { timeout: 3000 }
+        );
       }
     }, 10000);
   });
 
   describe('4. Тест UI: кнопка "По геолокации"', () => {
-    test('4.1 Успешный сценарий получения погоды по геолокации с навигацией', async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const geoBtn = document.getElementById('geoBtn');
-      if (!geoBtn) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+    test('4.1 Успешный сценарий получения погоды по геолокации с отображением', async () => {
+      await waitFor(() => {});
 
       const btn = document.getElementById('geoBtn');
       if (btn) {
@@ -362,32 +341,28 @@ describe('Тесты приложения погоды', () => {
             ),
           });
 
-        const emitSpy = jest.spyOn(EventBus, 'emit');
-        const routerGoSpy = jest.spyOn(router, 'go');
-
         btn.click();
 
-        await new Promise((resolve) => setTimeout(resolve, 1100));
-
-        expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
-        expect(fetch).toHaveBeenCalledTimes(2);
-        expect(emitSpy).toHaveBeenCalledWith(
-          'weather:loaded',
-          expect.objectContaining({ city: 'Moscow' })
+        await waitFor(
+          () => {
+            expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+            const tempEl = document.getElementById('temperature');
+            const history = localStorageStore['weatherHistory']
+              ? JSON.parse(localStorageStore['weatherHistory'])
+              : [];
+            expect(
+              (tempEl && tempEl.textContent.includes('°C')) ||
+                history.includes('Moscow')
+            ).toBe(true);
+          },
+          { timeout: 3000 }
         );
-        expect(routerGoSpy).toHaveBeenCalledWith('/city/Moscow');
-        emitSpy.mockRestore();
-        routerGoSpy.mockRestore();
       }
     }, 10000);
 
     test('4.2 Обработка ошибки при получении погоды по геолокации', async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      const geoBtn = document.getElementById('geoBtn');
-      if (!geoBtn) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+      await waitFor(() => {});
 
       const btn = document.getElementById('geoBtn');
       if (btn) {
@@ -404,16 +379,17 @@ describe('Тесты приложения погоды', () => {
           })
           .mockRejectedValueOnce(new Error('Network error'));
 
-        const emitSpy = jest.spyOn(EventBus, 'emit');
-
         btn.click();
 
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-
-        expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
-        expect(fetch).toHaveBeenCalledTimes(3);
-        expect(emitSpy).toHaveBeenCalledWith('error', expect.any(Error));
-        emitSpy.mockRestore();
+        await waitFor(
+          () => {
+            expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
+            expect(global.fetch).toHaveBeenCalledTimes(2);
+            const errorEl = document.getElementById('error');
+            expect(errorEl && errorEl.textContent).toBeTruthy();
+          },
+          { timeout: 3000 }
+        );
       }
     }, 10000);
   });
