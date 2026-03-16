@@ -100,7 +100,8 @@ describe('App', () => {
     renderApp();
 
     await waitFor(
-      () => expect(document.getElementById('location')).toHaveTextContent('Berlin'),
+      () =>
+        expect(document.getElementById('location')).toHaveTextContent('Berlin'),
       { timeout: 3000 }
     );
     expect(mockFetchWeather).toHaveBeenCalledWith('Berlin');
@@ -119,7 +120,9 @@ describe('App', () => {
       fireEvent.change(input, { target: { value: 'Paris' } });
       fireEvent.click(cityBtn);
     }
-    await waitFor(() => expect(document.getElementById('backBtn')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(document.getElementById('backBtn')).toBeInTheDocument()
+    );
     const backBtn = document.getElementById('backBtn');
     if (backBtn) fireEvent.click(backBtn);
     await waitFor(() => {

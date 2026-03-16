@@ -10,8 +10,7 @@ import {
 } from 'react-router-dom';
 import { useHistoryState } from './hooks/useHistory';
 import { useWeather } from './hooks/useWeather';
-import { WeatherMap } from './components/WeatherMap';
-import { WeatherSearchForm } from './components/WeatherSearchForm';
+import { WeatherMap, WeatherSearchForm } from './components';
 import type { WeatherState } from './types/weather';
 
 const GITHUB_BASE_PATH = '/HomeWork-WeatherApp-hw07';
@@ -97,7 +96,12 @@ function WeatherResult({
       </div>
       <WeatherMap city={city} coord={data.coord} />
       <div className="back-button-container">
-        <button type="button" className="back-btn" id="backBtn" onClick={onBack}>
+        <button
+          type="button"
+          className="back-btn"
+          id="backBtn"
+          onClick={onBack}
+        >
           <i className="fas fa-arrow-left"></i> Назад
         </button>
       </div>

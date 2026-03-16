@@ -9,7 +9,9 @@ import { WeatherMap } from './WeatherMap';
 describe('WeatherMap', () => {
   test('renders fallback text when no coordinates provided', () => {
     render(<WeatherMap city="Berlin" />);
-    expect(screen.getByText('Координаты для города недоступны.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Координаты для города недоступны.')
+    ).toBeInTheDocument();
   });
 
   test('renders iframe with map when coordinates are provided', () => {

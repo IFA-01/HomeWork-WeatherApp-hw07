@@ -14,13 +14,7 @@ function getMapSrc({ lat, lon }: Coord): string {
   return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lon}`;
 }
 
-export function WeatherMap({
-  city,
-  coord,
-}: {
-  city: string;
-  coord?: Coord;
-}) {
+export function WeatherMap({ city, coord }: { city: string; coord?: Coord }) {
   if (!coord) {
     return (
       <div className="map-block">
