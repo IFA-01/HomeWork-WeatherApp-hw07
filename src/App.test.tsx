@@ -3,8 +3,7 @@
  */
 import '@testing-library/jest-dom';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import App from './App';
 
 // Mock model
@@ -20,19 +19,7 @@ describe('App', () => {
   let localStorageStore: Record<string, string> = {};
 
   function renderApp() {
-    return render(
-      <div id="router-content">
-        <nav className="navigation">
-          <a href="/" data-router className="nav-link" id="navHome">
-            Главная
-          </a>
-          <a href="/about" data-router className="nav-link" id="navAbout">
-            О приложении
-          </a>
-        </nav>
-        <App />
-      </div>
-    );
+    return render(<App />);
   }
 
   beforeEach(() => {
@@ -58,6 +45,8 @@ describe('App', () => {
 
   test('renders main screen with input and buttons', () => {
     renderApp();
+    expect(document.getElementById('navHome')).toBeInTheDocument();
+    expect(document.getElementById('navAbout')).toBeInTheDocument();
     expect(document.getElementById('cityInput')).toBeInTheDocument();
     expect(document.getElementById('cityBtn')).toBeInTheDocument();
     expect(document.getElementById('geoBtn')).toBeInTheDocument();
@@ -76,6 +65,7 @@ describe('App', () => {
 
   test('shows weather after successful city fetch', async () => {
     mockFetchWeather.mockResolvedValueOnce({
+      coord: { lat: 51.5, lon: -0.12 },
       main: { temp: 20, feels_like: 18, humidity: 60 },
       weather: [{ description: 'clear sky' }],
       wind: { speed: 3 },
@@ -93,12 +83,30 @@ describe('App', () => {
           '20°C'
         );
         expect(document.getElementById('location')).toHaveTextContent('London');
+        expect(window.location.pathname).toBe('/weather/London');
       },
       { timeout: 3000 }
     );
+    expect(document.querySelector('.map-frame')).toBeInTheDocument();
   });
 
-  test('back button clears weather', async () => {
+  test('direct opening of parameterized route loads weather by city', async () => {
+    mockFetchWeather.mockResolvedValueOnce({
+      main: { temp: 7, feels_like: 6, humidity: 78 },
+      weather: [{ description: 'fog' }],
+      wind: { speed: 2 },
+    });
+    window.history.replaceState({}, '', '/weather/Berlin');
+    renderApp();
+
+    await waitFor(
+      () => expect(document.getElementById('location')).toHaveTextContent('Berlin'),
+      { timeout: 3000 }
+    );
+    expect(mockFetchWeather).toHaveBeenCalledWith('Berlin');
+  });
+
+  test('back button returns to home route and clears weather view', async () => {
     mockFetchWeather.mockResolvedValueOnce({
       main: { temp: 10, feels_like: 8, humidity: 70 },
       weather: [{ description: 'cloudy' }],
@@ -111,14 +119,12 @@ describe('App', () => {
       fireEvent.change(input, { target: { value: 'Paris' } });
       fireEvent.click(cityBtn);
     }
-    await waitFor(
-      () => expect(document.getElementById('backBtn')).toBeInTheDocument(),
-      { timeout: 3000 }
-    );
+    await waitFor(() => expect(document.getElementById('backBtn')).toBeInTheDocument());
     const backBtn = document.getElementById('backBtn');
     if (backBtn) fireEvent.click(backBtn);
     await waitFor(() => {
-      expect(document.getElementById('temperature')).not.toBeInTheDocument();
+      expect(document.getElementById('cityInput')).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/');
     });
   });
 
@@ -135,9 +141,6 @@ describe('App', () => {
   });
 
   test('About screen back button calls history.back', async () => {
-    const backSpy = jest
-      .spyOn(window.history, 'back')
-      .mockImplementation(() => {});
     renderApp();
     const aboutLink = document.querySelector('a[href="/about"]');
     if (aboutLink) fireEvent.click(aboutLink);
@@ -146,8 +149,9 @@ describe('App', () => {
     });
     const backBtn = document.querySelector('.about-content .back-btn');
     if (backBtn) fireEvent.click(backBtn);
-    expect(backSpy).toHaveBeenCalled();
-    backSpy.mockRestore();
+    await waitFor(() => {
+      expect(document.getElementById('cityInput')).toBeInTheDocument();
+    });
   });
 
   test('shows history list when history has items', () => {
@@ -158,7 +162,7 @@ describe('App', () => {
     expect(document.body.textContent).toContain('Berlin');
   });
 
-  test('Enter key in city input submits', async () => {
+  test('Enter key in city input navigates to parameterized weather route', async () => {
     mockFetchWeather.mockResolvedValueOnce({
       main: { temp: 5, feels_like: 4, humidity: 50 },
       weather: [{ description: 'cold' }],
@@ -175,6 +179,7 @@ describe('App', () => {
         expect(document.getElementById('temperature')).toHaveTextContent('5°C'),
       { timeout: 3000 }
     );
+    expect(window.location.pathname).toBe('/weather/Wien');
   });
 
   test('error close button clears error', async () => {
@@ -191,5 +196,24 @@ describe('App', () => {
     await waitFor(() => {
       expect(document.getElementById('error')).not.toBeInTheDocument();
     });
+  });
+
+  test('history links navigate to weather route', async () => {
+    localStorageStore['weatherHistory'] = JSON.stringify(['Moscow']);
+    mockFetchWeather.mockResolvedValueOnce({
+      main: { temp: 2, feels_like: 0, humidity: 66 },
+      weather: [{ description: 'snow' }],
+      wind: { speed: 6 },
+    });
+    renderApp();
+
+    const historyLink = document.querySelector('.history-link');
+    expect(historyLink).toBeInTheDocument();
+    if (historyLink) fireEvent.click(historyLink);
+
+    await waitFor(() => {
+      expect(document.getElementById('location')).toHaveTextContent('Moscow');
+    });
+    expect(window.location.pathname).toBe('/weather/Moscow');
   });
 });

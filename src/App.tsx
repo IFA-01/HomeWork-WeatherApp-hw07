@@ -1,21 +1,37 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  BrowserRouter,
+  NavLink,
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
 import { useHistoryState } from './hooks/useHistory';
 import { useWeather } from './hooks/useWeather';
+import { WeatherMap } from './components/WeatherMap';
+import { WeatherSearchForm } from './components/WeatherSearchForm';
 import type { WeatherState } from './types/weather';
 
-const BASE_PATH =
-  typeof window !== 'undefined' &&
-  window.location.pathname.startsWith('/HomeWork-WeatherApp-hw07')
-    ? '/HomeWork-WeatherApp-hw07'
-    : '';
+const GITHUB_BASE_PATH = '/HomeWork-WeatherApp-hw07';
 
-function getPathname(): string {
-  if (typeof window === 'undefined') return '/';
-  const path = window.location.pathname.replace(BASE_PATH, '') || '/';
-  return path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
+function getBrowserBasePath(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  const host = window.location.hostname;
+  const isGithubPages =
+    host === 'ifa-01.github.io' || host.endsWith('.github.io');
+  return isGithubPages ? GITHUB_BASE_PATH : undefined;
 }
 
-function AboutScreen({ onBack }: { onBack: () => void }) {
+function normalizeCityFromRoute(cityName: string | undefined): string {
+  if (!cityName) return '';
+  return decodeURIComponent(cityName).trim();
+}
+
+function AboutScreen() {
+  const navigate = useNavigate();
+
   return (
     <div className="about-content">
       <h2>О приложении</h2>
@@ -31,7 +47,7 @@ function AboutScreen({ onBack }: { onBack: () => void }) {
         о погоде.
       </p>
       <div className="back-button-container">
-        <button type="button" className="back-btn" onClick={onBack}>
+        <button type="button" className="back-btn" onClick={() => navigate(-1)}>
           <i className="fas fa-arrow-left"></i> Назад
         </button>
       </div>
@@ -47,11 +63,12 @@ function WeatherResult({
   onBack: () => void;
 }) {
   if (!weather) return null;
+
   const { city, data } = weather;
   const temp = Math.round(data.main.temp);
   const feelsLike = Math.round(data.main.feels_like);
   const wind = data.wind?.speed ?? 0;
-  const desc = data.weather[0]?.description ?? '';
+  const description = data.weather[0]?.description ?? '';
 
   return (
     <div className="weather-info show">
@@ -62,7 +79,7 @@ function WeatherResult({
         {temp}°C
       </div>
       <div className="description" id="description">
-        {desc}
+        {description}
       </div>
       <div className="details">
         <div className="detail">
@@ -78,13 +95,9 @@ function WeatherResult({
           <div id="feelsLike">{feelsLike}°C</div>
         </div>
       </div>
+      <WeatherMap city={city} coord={data.coord} />
       <div className="back-button-container">
-        <button
-          type="button"
-          className="back-btn"
-          id="backBtn"
-          onClick={onBack}
-        >
+        <button type="button" className="back-btn" id="backBtn" onClick={onBack}>
           <i className="fas fa-arrow-left"></i> Назад
         </button>
       </div>
@@ -92,127 +105,123 @@ function WeatherResult({
   );
 }
 
-function HistoryList({
-  history,
-  onSelectCity,
-}: {
-  history: string[];
-  onSelectCity: (city: string) => void;
-}) {
-  if (!history || history.length === 0) {
+function HistoryList({ history }: { history: string[] }) {
+  if (history.length === 0) {
     return <p className="no-history">История пуста</p>;
   }
+
   return (
     <>
       {history.map((city) => (
         <div key={city} className="history-item">
-          <button
-            type="button"
+          <NavLink
+            data-router
             className="history-link"
-            onClick={() => onSelectCity(city)}
+            to={`/weather/${encodeURIComponent(city)}`}
           >
             <i className="fas fa-map-marker-alt"></i> {city}
-          </button>
+          </NavLink>
         </div>
       ))}
     </>
   );
 }
 
-export default function App() {
-  const [pathname, setPathname] = useState(getPathname);
-  const [history, addToHistory] = useHistoryState();
-  const cityInputRef = useRef<HTMLInputElement>(null);
+function HomeScreen({
+  cityInput,
+  onCityInputChange,
+  onCitySubmit,
+  onGeoSubmit,
+  history,
+  loading,
+  error,
+  onClearError,
+}: {
+  cityInput: string;
+  onCityInputChange: (value: string) => void;
+  onCitySubmit: () => void;
+  onGeoSubmit: () => Promise<string | null>;
+  history: string[];
+  loading: boolean;
+  error: string | null;
+  onClearError: () => void;
+}) {
+  return (
+    <>
+      <WeatherSearchForm
+        cityInput={cityInput}
+        onCityInputChange={onCityInputChange}
+        onCitySubmit={onCitySubmit}
+        onGeoSubmit={onGeoSubmit}
+      />
 
-  const {
-    weather,
-    loading,
-    error,
-    fetchByCity,
-    fetchByGeo,
-    clearError,
-    clearWeather,
-  } = useWeather(addToHistory);
+      <div
+        className="loading"
+        id="loading"
+        style={{ display: loading ? 'block' : 'none' }}
+      >
+        <i className="fas fa-spinner fa-spin"></i> Загрузка...
+      </div>
+
+      {error && (
+        <div className="error" id="error" style={{ display: 'block' }}>
+          {error}
+          <button
+            type="button"
+            aria-label="Закрыть"
+            onClick={onClearError}
+            style={{
+              marginLeft: 8,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      <div className="history-section" id="historySection">
+        <h3>История поиска</h3>
+        <div className="history-list" id="historyList">
+          <HistoryList history={history} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function WeatherRoute({
+  weather,
+  loading,
+  error,
+  fetchByCity,
+  clearError,
+  onBack,
+}: {
+  weather: WeatherState;
+  loading: boolean;
+  error: string | null;
+  fetchByCity: (city: string) => Promise<string | null>;
+  clearError: () => void;
+  onBack: () => void;
+}) {
+  const { cityName } = useParams();
+  const routeCity = useMemo(() => normalizeCityFromRoute(cityName), [cityName]);
 
   useEffect(() => {
-    const handlePopState = () => setPathname(getPathname());
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+    if (!routeCity) return;
+    if (weather?.city.toLowerCase() === routeCity.toLowerCase()) return;
+    void fetchByCity(routeCity);
+  }, [fetchByCity, routeCity, weather?.city]);
 
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const link = (e.target as Element).closest?.(
-        'a[data-router]'
-      ) as HTMLAnchorElement | null;
-      if (!link) return;
-      e.preventDefault();
-      const path = link.getAttribute('href') ?? '/';
-      const fullPath = BASE_PATH ? BASE_PATH + path : path;
-      window.history.pushState({}, '', fullPath);
-      setPathname(path === '/' ? '/' : path);
-    };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, []);
-
-  useEffect(() => {
-    const links = document.querySelectorAll('.nav-link');
-    links.forEach((el) => {
-      const href = el.getAttribute('href') ?? '/';
-      const isActive =
-        (href === '/' && pathname === '/') ||
-        (href !== '/' && pathname === href);
-      el.classList.toggle('active', isActive);
-    });
-  }, [pathname]);
-
-  const handleCitySubmit = () => {
-    const value = cityInputRef.current?.value ?? '';
-    fetchByCity(value);
-  };
-
-  const handleSelectFromHistory = (city: string) => {
-    fetchByCity(city);
-  };
-
-  const goBack = () => window.history.back();
-
-  if (pathname === '/about') {
-    return <AboutScreen onBack={goBack} />;
+  if (!routeCity) {
+    return <Navigate replace to="/" />;
   }
 
   return (
     <>
-      <div className="input-group">
-        <input
-          ref={cityInputRef}
-          type="text"
-          id="cityInput"
-          placeholder="Введите город"
-          onKeyDown={(e) => e.key === 'Enter' && handleCitySubmit()}
-        />
-      </div>
-
-      <div className="buttons">
-        <button
-          type="button"
-          className="city-btn"
-          id="cityBtn"
-          onClick={handleCitySubmit}
-        >
-          <i className="fas fa-city"></i> По городу
-        </button>
-        <button
-          type="button"
-          className="geo-btn"
-          id="geoBtn"
-          onClick={() => fetchByGeo()}
-        >
-          <i className="fas fa-location-arrow"></i> По геолокации
-        </button>
-      </div>
-
       <div
         className="loading"
         id="loading"
@@ -240,17 +249,111 @@ export default function App() {
         </div>
       )}
 
-      <div className="history-section" id="historySection">
-        <h3>История поиска</h3>
-        <div className="history-list" id="historyList">
-          <HistoryList
-            history={history}
-            onSelectCity={handleSelectFromHistory}
-          />
-        </div>
-      </div>
-
-      {weather && <WeatherResult weather={weather} onBack={clearWeather} />}
+      <WeatherResult weather={weather} onBack={onBack} />
     </>
+  );
+}
+
+function AppContent() {
+  const navigate = useNavigate();
+  const [cityInput, setCityInput] = useState('');
+  const [history, addToHistory] = useHistoryState();
+  const {
+    weather,
+    loading,
+    error,
+    fetchByCity,
+    fetchByGeo,
+    clearError,
+    clearWeather,
+  } = useWeather(addToHistory);
+
+  const handleCitySubmit = () => {
+    const trimmed = cityInput.trim();
+    if (!trimmed) {
+      void fetchByCity(cityInput);
+      return;
+    }
+    clearError();
+    navigate(`/weather/${encodeURIComponent(trimmed)}`);
+  };
+
+  const handleGeoSubmit = async (): Promise<string | null> => {
+    const city = await fetchByGeo();
+    if (city) {
+      navigate(`/weather/${encodeURIComponent(city)}`);
+      return city;
+    }
+    return null;
+  };
+
+  const handleBackToHome = () => {
+    clearWeather();
+    navigate('/');
+  };
+
+  return (
+    <>
+      <nav className="navigation">
+        <NavLink
+          to="/"
+          data-router
+          id="navHome"
+          className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+          end
+        >
+          <i className="fas fa-home"></i> Главная
+        </NavLink>
+        <NavLink
+          to="/about"
+          data-router
+          id="navAbout"
+          className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+        >
+          <i className="fas fa-info-circle"></i> О приложении
+        </NavLink>
+      </nav>
+
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <HomeScreen
+              cityInput={cityInput}
+              onCityInputChange={setCityInput}
+              onCitySubmit={handleCitySubmit}
+              onGeoSubmit={handleGeoSubmit}
+              history={history}
+              loading={loading}
+              error={error}
+              onClearError={clearError}
+            />
+          }
+        />
+        <Route path="/about" element={<AboutScreen />} />
+        <Route
+          path="/weather/:cityName"
+          element={
+            <WeatherRoute
+              weather={weather}
+              loading={loading}
+              error={error}
+              fetchByCity={fetchByCity}
+              clearError={clearError}
+              onBack={handleBackToHome}
+            />
+          }
+        />
+        <Route path="*" element={<Navigate replace to="/" />} />
+      </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter basename={getBrowserBasePath()}>
+      <AppContent />
+    </BrowserRouter>
   );
 }

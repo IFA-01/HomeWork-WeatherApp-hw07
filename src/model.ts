@@ -12,12 +12,18 @@ interface WeatherWind {
   speed: number;
 }
 
+interface WeatherCoord {
+  lat: number;
+  lon: number;
+}
+
 export interface WeatherData {
+  coord?: WeatherCoord;
   main: WeatherMain;
   weather: WeatherCondition[];
   wind?: WeatherWind;
   name?: string;
-  cod?: string;
+  cod?: number | string;
 }
 
 interface GeolocationPosition {
