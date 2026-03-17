@@ -1,4 +1,8 @@
 export interface WeatherData {
+  coord?: {
+    lat: number;
+    lon: number;
+  };
   main: {
     temp: number;
     feels_like: number;

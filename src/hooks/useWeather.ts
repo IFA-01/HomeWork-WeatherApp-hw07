@@ -6,8 +6,8 @@ export function useWeather(onSuccess?: (city: string) => void): {
   weather: WeatherState;
   loading: boolean;
   error: string | null;
-  fetchByCity: (city: string) => Promise<void>;
-  fetchByGeo: () => Promise<void>;
+  fetchByCity: (city: string) => Promise<string | null>;
+  fetchByGeo: () => Promise<string | null>;
   clearError: () => void;
   clearWeather: () => void;
 } {
@@ -23,7 +23,7 @@ export function useWeather(onSuccess?: (city: string) => void): {
       const trimmed = city.trim();
       if (!trimmed) {
         setError('Введите название города');
-        return;
+        return null;
       }
       setError(null);
       setLoading(true);
@@ -31,16 +31,18 @@ export function useWeather(onSuccess?: (city: string) => void): {
         const data = await fetchWeather(trimmed);
         if (data.cod && data.cod !== 200) {
           setError('Город не найден. Проверьте правильность написания.');
-          return;
+          return null;
         }
         setWeather({ city: trimmed, data });
         onSuccess?.(trimmed);
+        return trimmed;
       } catch (e) {
         const message =
           e instanceof Error
             ? e.message
             : 'Город не найден. Проверьте правильность написания.';
         setError(message);
+        return null;
       } finally {
         setLoading(false);
       }
@@ -56,14 +58,16 @@ export function useWeather(onSuccess?: (city: string) => void): {
       const data = await fetchWeather(city);
       if (data.cod && data.cod !== 200) {
         setError('Город не найден.');
-        return;
+        return null;
       }
       setWeather({ city, data });
       onSuccess?.(city);
+      return city;
     } catch (e) {
       const message =
         e instanceof Error ? e.message : 'Ошибка получения геолокации';
       setError(message);
+      return null;
     } finally {
       setLoading(false);
     }
