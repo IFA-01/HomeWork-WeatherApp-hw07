@@ -5,16 +5,20 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useWeather } from './useWeather';
 
 const mockFetchWeather = jest.fn();
+const mockFetchWeatherByCoords = jest.fn();
 const mockFetchGeo = jest.fn();
 
 jest.mock('../model.js', () => ({
   fetchWeather: (...args: unknown[]) => mockFetchWeather(...args),
+  fetchWeatherByCoords: (...args: unknown[]) =>
+    mockFetchWeatherByCoords(...args),
   fetchGeo: (...args: unknown[]) => mockFetchGeo(...args),
 }));
 
 describe('useWeather', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
   });
 
   test('fetchByCity with empty string sets error', async () => {
@@ -142,5 +146,68 @@ describe('useWeather', () => {
       expect(result.current.error).toContain('Город не найден');
       expect(result.current.weather).toBeNull();
     });
+  });
+
+  test('fetchByCity uses cache only when preferCache option is enabled', async () => {
+    localStorage.setItem(
+      'weatherDataCache',
+      JSON.stringify({
+        osaka: {
+          main: { temp: 22, feels_like: 21, humidity: 65 },
+          weather: [{ description: 'cached' }],
+          wind: { speed: 2 },
+        },
+      })
+    );
+    const { result } = renderHook(() => useWeather());
+    await act(async () => {
+      await result.current.fetchByCity('Osaka', { preferCache: true });
+    });
+
+    expect(result.current.weather?.city).toBe('Osaka');
+    expect(result.current.weather?.data.main.temp).toBe(22);
+    expect(mockFetchWeather).not.toHaveBeenCalled();
+  });
+
+  test('fetchByCity without preferCache always requests API', async () => {
+    localStorage.setItem(
+      'weatherDataCache',
+      JSON.stringify({
+        oslo: {
+          main: { temp: 2, feels_like: 1, humidity: 80 },
+          weather: [{ description: 'cached' }],
+          wind: { speed: 3 },
+        },
+      })
+    );
+    mockFetchWeather.mockResolvedValueOnce({
+      main: { temp: 4, feels_like: 3, humidity: 70 },
+      weather: [{ description: 'fresh' }],
+      wind: { speed: 4 },
+    });
+
+    const { result } = renderHook(() => useWeather());
+    await act(async () => {
+      await result.current.fetchByCity('Oslo');
+    });
+
+    expect(mockFetchWeather).toHaveBeenCalledWith('Oslo');
+    expect(result.current.weather?.data.main.temp).toBe(4);
+  });
+
+  test('fetchByCoords loads weather from coordinates', async () => {
+    mockFetchWeatherByCoords.mockResolvedValueOnce({
+      name: 'Coords City',
+      main: { temp: 13, feels_like: 12, humidity: 67 },
+      weather: [{ description: 'sunny' }],
+      wind: { speed: 2 },
+    });
+    const { result } = renderHook(() => useWeather());
+    await act(async () => {
+      await result.current.fetchByCoords(10, 20);
+    });
+
+    expect(mockFetchWeatherByCoords).toHaveBeenCalledWith(10, 20);
+    expect(result.current.weather?.city).toBe('Coords City');
   });
 });

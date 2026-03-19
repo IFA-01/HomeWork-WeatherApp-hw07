@@ -3,16 +3,19 @@
  */
 import '@testing-library/jest-dom';
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import App from './App';
 
 // Mock model
 jest.mock('./model.js', () => ({
   fetchWeather: jest.fn(),
+  fetchWeatherByCoords: jest.fn(),
   fetchGeo: jest.fn(),
 }));
 
 const mockFetchWeather = jest.requireMock('./model.js').fetchWeather;
+const mockFetchWeatherByCoords =
+  jest.requireMock('./model.js').fetchWeatherByCoords;
 const mockFetchGeo = jest.requireMock('./model.js').fetchGeo;
 
 describe('App', () => {
@@ -25,6 +28,7 @@ describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorageStore = {};
+    sessionStorage.clear();
     window.history.replaceState({}, '', '/');
     Object.defineProperty(window, 'localStorage', {
       value: {
@@ -47,10 +51,11 @@ describe('App', () => {
     renderApp();
     expect(document.getElementById('navHome')).toBeInTheDocument();
     expect(document.getElementById('navAbout')).toBeInTheDocument();
+    expect(document.getElementById('navHistory')).toBeInTheDocument();
     expect(document.getElementById('cityInput')).toBeInTheDocument();
     expect(document.getElementById('cityBtn')).toBeInTheDocument();
     expect(document.getElementById('geoBtn')).toBeInTheDocument();
-    expect(document.getElementById('historySection')).toBeInTheDocument();
+    expect(document.querySelector('.city-map-selector')).toBeInTheDocument();
   });
 
   test('shows error when city button clicked with empty input', async () => {
@@ -160,6 +165,8 @@ describe('App', () => {
   test('shows history list when history has items', () => {
     localStorageStore['weatherHistory'] = JSON.stringify(['Moscow', 'Berlin']);
     renderApp();
+    const historyNav = document.querySelector('a[href="/history"]');
+    if (historyNav) fireEvent.click(historyNav);
     expect(document.querySelector('.history-item')).toBeInTheDocument();
     expect(document.body.textContent).toContain('Moscow');
     expect(document.body.textContent).toContain('Berlin');
@@ -209,6 +216,8 @@ describe('App', () => {
       wind: { speed: 6 },
     });
     renderApp();
+    const historyNav = document.querySelector('a[href="/history"]');
+    if (historyNav) fireEvent.click(historyNav);
 
     const historyLink = document.querySelector('.history-link');
     expect(historyLink).toBeInTheDocument();
@@ -218,5 +227,50 @@ describe('App', () => {
       expect(document.getElementById('location')).toHaveTextContent('Moscow');
     });
     expect(window.location.pathname).toBe('/weather/Moscow');
+  });
+
+  test('history click uses cached weather without repeated fetch', async () => {
+    localStorageStore['weatherHistory'] = JSON.stringify(['Prague']);
+    localStorageStore['weatherDataCache'] = JSON.stringify({
+      prague: {
+        main: { temp: 16, feels_like: 15, humidity: 61 },
+        weather: [{ description: 'cached weather' }],
+        wind: { speed: 3 },
+      },
+    });
+    renderApp();
+    const historyNav = document.querySelector('a[href="/history"]');
+    if (historyNav) fireEvent.click(historyNav);
+
+    const historyLink = document.querySelector('.history-link');
+    if (historyLink) fireEvent.click(historyLink);
+
+    await waitFor(() => {
+      expect(document.getElementById('location')).toHaveTextContent('Prague');
+      expect(document.getElementById('description')).toHaveTextContent(
+        'cached weather'
+      );
+    });
+    expect(mockFetchWeather).not.toHaveBeenCalled();
+  });
+
+  test('coords route loads weather by coordinates', async () => {
+    mockFetchWeatherByCoords.mockResolvedValueOnce({
+      name: 'Point City',
+      coord: { lat: 34.5, lon: 12.4 },
+      main: { temp: 11, feels_like: 9, humidity: 74 },
+      weather: [{ description: 'windy' }],
+      wind: { speed: 6 },
+    });
+    window.history.replaceState({}, '', '/weather/coords/34.5/12.4');
+    renderApp();
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe('/weather/coords/34.5/12.4');
+      expect(document.getElementById('location')).toHaveTextContent(
+        'Point City'
+      );
+    });
+    expect(mockFetchWeatherByCoords).toHaveBeenCalledWith(34.5, 12.4);
   });
 });

@@ -1,16 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BrowserRouter,
   NavLink,
   Navigate,
   Route,
   Routes,
+  useLocation,
   useNavigate,
   useParams,
 } from 'react-router-dom';
 import { useHistoryState } from './hooks/useHistory';
 import { useWeather } from './hooks/useWeather';
-import { WeatherMap, WeatherSearchForm } from './components';
+import { CityMapSelector, WeatherMap, WeatherSearchForm } from './components';
 import type { WeatherState } from './types/weather';
 
 const GITHUB_BASE_PATH = '/HomeWork-WeatherApp-hw07';
@@ -109,7 +110,13 @@ function WeatherResult({
   );
 }
 
-function HistoryList({ history }: { history: string[] }) {
+function HistoryList({
+  history,
+  fromHistoryRoute = false,
+}: {
+  history: string[];
+  fromHistoryRoute?: boolean;
+}) {
   if (history.length === 0) {
     return <p className="no-history">История пуста</p>;
   }
@@ -122,6 +129,7 @@ function HistoryList({ history }: { history: string[] }) {
             data-router
             className="history-link"
             to={`/weather/${encodeURIComponent(city)}`}
+            state={fromHistoryRoute ? { fromHistory: true } : undefined}
           >
             <i className="fas fa-map-marker-alt"></i> {city}
           </NavLink>
@@ -131,12 +139,26 @@ function HistoryList({ history }: { history: string[] }) {
   );
 }
 
+function HistoryScreen({ history }: { history: string[] }) {
+  return (
+    <div className="history-section history-route" id="historySection">
+      <h2>История</h2>
+      <p className="history-route-description">
+        Выберите город из ранее просмотренных.
+      </p>
+      <div className="history-list" id="historyList">
+        <HistoryList history={history} fromHistoryRoute />
+      </div>
+    </div>
+  );
+}
+
 function HomeScreen({
   cityInput,
   onCityInputChange,
   onCitySubmit,
   onGeoSubmit,
-  history,
+  onMapPointSelect,
   loading,
   error,
   onClearError,
@@ -145,7 +167,7 @@ function HomeScreen({
   onCityInputChange: (value: string) => void;
   onCitySubmit: () => void;
   onGeoSubmit: () => Promise<string | null>;
-  history: string[];
+  onMapPointSelect: (coords: { lat: number; lon: number }) => void;
   loading: boolean;
   error: string | null;
   onClearError: () => void;
@@ -186,12 +208,7 @@ function HomeScreen({
         </div>
       )}
 
-      <div className="history-section" id="historySection">
-        <h3>История поиска</h3>
-        <div className="history-list" id="historyList">
-          <HistoryList history={history} />
-        </div>
-      </div>
+      <CityMapSelector onSelectPoint={onMapPointSelect} />
     </>
   );
 }
@@ -201,26 +218,61 @@ function WeatherRoute({
   loading,
   error,
   fetchByCity,
+  fetchByCoords,
   clearError,
   onBack,
 }: {
   weather: WeatherState;
   loading: boolean;
   error: string | null;
-  fetchByCity: (city: string) => Promise<string | null>;
+  fetchByCity: (
+    city: string,
+    options?: { preferCache?: boolean }
+  ) => Promise<string | null>;
+  fetchByCoords: (lat: number, lon: number) => Promise<string | null>;
   clearError: () => void;
   onBack: () => void;
 }) {
+  const location = useLocation();
   const { cityName } = useParams();
+  const { lat, lon } = useParams();
   const routeCity = useMemo(() => normalizeCityFromRoute(cityName), [cityName]);
+  const preferCache = Boolean(location.state?.fromHistory);
+  const routeLat = lat ? Number(lat) : NaN;
+  const routeLon = lon ? Number(lon) : NaN;
+  const hasCoords = Number.isFinite(routeLat) && Number.isFinite(routeLon);
+  const lastRequestedKeyRef = useRef<string>('');
 
   useEffect(() => {
+    if (loading) return;
+
+    if (hasCoords) {
+      const requestKey = `coords:${routeLat}:${routeLon}`;
+      if (lastRequestedKeyRef.current === requestKey) return;
+      lastRequestedKeyRef.current = requestKey;
+      void fetchByCoords(routeLat, routeLon);
+      return;
+    }
+
     if (!routeCity) return;
     if (weather?.city.toLowerCase() === routeCity.toLowerCase()) return;
-    void fetchByCity(routeCity);
-  }, [fetchByCity, routeCity, weather?.city]);
+    const requestKey = `city:${routeCity.toLowerCase()}:${preferCache ? '1' : '0'}`;
+    if (lastRequestedKeyRef.current === requestKey) return;
+    lastRequestedKeyRef.current = requestKey;
+    void fetchByCity(routeCity, { preferCache });
+  }, [
+    preferCache,
+    fetchByCity,
+    fetchByCoords,
+    hasCoords,
+    loading,
+    routeCity,
+    routeLat,
+    routeLon,
+    weather?.city,
+  ]);
 
-  if (!routeCity) {
+  if (!hasCoords && !routeCity) {
     return <Navigate replace to="/" />;
   }
 
@@ -267,6 +319,7 @@ function AppContent() {
     loading,
     error,
     fetchByCity,
+    fetchByCoords,
     fetchByGeo,
     clearError,
     clearWeather,
@@ -296,6 +349,11 @@ function AppContent() {
     navigate('/');
   };
 
+  const handleMapPointSelect = ({ lat, lon }: { lat: number; lon: number }) => {
+    clearError();
+    navigate(`/weather/coords/${lat}/${lon}`);
+  };
+
   return (
     <>
       <nav className="navigation">
@@ -316,6 +374,14 @@ function AppContent() {
         >
           <i className="fas fa-info-circle"></i> О приложении
         </NavLink>
+        <NavLink
+          to="/history"
+          data-router
+          id="navHistory"
+          className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+        >
+          <i className="fas fa-history"></i> История
+        </NavLink>
       </nav>
 
       <Routes>
@@ -327,7 +393,7 @@ function AppContent() {
               onCityInputChange={setCityInput}
               onCitySubmit={handleCitySubmit}
               onGeoSubmit={handleGeoSubmit}
-              history={history}
+              onMapPointSelect={handleMapPointSelect}
               loading={loading}
               error={error}
               onClearError={clearError}
@@ -335,6 +401,7 @@ function AppContent() {
           }
         />
         <Route path="/about" element={<AboutScreen />} />
+        <Route path="/history" element={<HistoryScreen history={history} />} />
         <Route
           path="/weather/:cityName"
           element={
@@ -343,6 +410,21 @@ function AppContent() {
               loading={loading}
               error={error}
               fetchByCity={fetchByCity}
+              fetchByCoords={fetchByCoords}
+              clearError={clearError}
+              onBack={handleBackToHome}
+            />
+          }
+        />
+        <Route
+          path="/weather/coords/:lat/:lon"
+          element={
+            <WeatherRoute
+              weather={weather}
+              loading={loading}
+              error={error}
+              fetchByCity={fetchByCity}
+              fetchByCoords={fetchByCoords}
               clearError={clearError}
               onBack={handleBackToHome}
             />
