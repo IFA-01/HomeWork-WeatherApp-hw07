@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    if: github.ref_name == 'lesson33-react-routing'
+    if: github.ref_name == 'Final' || github.ref_name == 'main'
     permissions:
       contents: write
       pages: write

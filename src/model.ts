@@ -52,6 +52,19 @@ export async function fetchWeather(city: string): Promise<WeatherData> {
   return weather;
 }
 
+export async function fetchWeatherByCoords(
+  lat: number,
+  lon: number
+): Promise<WeatherData> {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const APP_ID = '97d93f1704dcb8e35dd2045c8e75710d';
+  const response = await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?units=metric&lat=${lat}&lon=${lon}&appid=${APP_ID}`
+  );
+  const weather: WeatherData = JSON.parse(await response.text());
+  return weather;
+}
+
 export async function fetchGeo(): Promise<string> {
   if (!navigator.geolocation) {
     throw new Error('couldnt get geolocation');
